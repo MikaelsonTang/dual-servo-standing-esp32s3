@@ -10,3 +10,8 @@ backup/
 *.bin
 *.elf
 *.map
+!firmware/prebuilt/v20/*.bin
+desktop/recordings/
+local_joint_zero.json
+*.log
+.venv-*/

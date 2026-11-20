@@ -1,92 +1,77 @@
-# 双舵机站立模型（ESP32S3）
+# 从零搭建一台双舵机自起身机器人
 
-使用 ESP32-S3、两只飞特 HD-1910-C001 总线舵机与 BMI270 IMU 的站立／翻身机器人实验项目。
+**ESP32-S3 · HD1910 × 2 · BMI270 · Windows 活动教程**
 
-**当前版本已完成 IMU 真机读取。尚未完成 ESP32 舵机控制、真机平衡或翻身站立；本仓库暂不包含 CAD、仿真或强化学习策略。**
+不需要先会写程序。本教程从认识插头开始，带你给舵机设置编号、装好结构、连接面包板、烧录程序，再用窗口启动一次起身。
 
-## 硬件与当前状态
+**本页对应 2026-11-20 活动版界面与 V20 固件。上舵机 ID1，下舵机 ID2；IMU 的 SDA 接 GPIO6，SCL 接 GPIO7。** 仓库早期文档里的相反 ID 和 GPIO4/5 已过时。
 
-| 部件 | 配置／状态 |
+![接线总览](docs/images/wiring.svg)
+
+## 按这个顺序做
+
+| 步骤 | 这一章做什么 | 完成标志 |
+| --- | --- | --- |
+| 0 | [认识器材、准备软件](docs/00-preparation.md) | 能认出两块板、USB 数据线、舵机三芯线 |
+| 1 | [逐个设置舵机 ID](docs/01-servo-id.md) | FD 能同时找到 ID1、ID2，波特率都是 1000000 |
+| 2 | [组装：ID1 在上，ID2 在下](docs/02-assembly.md) | 底座平放、两个关节居中、顶部长杆竖直 |
+| 3 | [面包板、IMU、微雪板接线](docs/03-wiring.md) | 按丝印逐线核对，供电与信号走线正确 |
+| 4 | [把程序烧进 ESP32-S3](docs/04-flashing.md) | 烧录显示校验成功，窗口能识别 V20 |
+| 5 | [打开窗口，启动第一次起身](docs/05-first-run.md) | 起身、回零、卸力；记录自动保存 |
+| 6 | [新装机器的机械零位与 IMU 方向](docs/06-calibration.md) | 新机器的实际直立与程序的零位一致 |
+| 7 | [出现问题时查这里](docs/07-troubleshooting.md) | 根据症状逐项定位，不靠反复加角度 |
+| 教师 | [活动组织、验收与软件版本](docs/08-organizer.md) | 每组有预检过的电源、结构和标定 |
+
+**独立购买零件、重新组装的人：在第一次带电运动之前完成第 6 章。** 活动中拿到已经调好的同款套件，可以按 0→5 操作；仍要检查方向和零位。
+
+固定活动版本：[workshop-v20-ui-v1](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/tree/workshop-v20-ui-v1)（用于保留这一版程序与界面）。
+
+## 下载整套文件
+
+在本仓库页面上方点击 **Code → Download ZIP**，下载后右键 **全部解压**。不要在 ZIP 压缩包里直接双击程序。建议放到 `C:\HD1910` 这样的简单目录。
+
+[直接下载当前仓库 ZIP](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/archive/refs/heads/main.zip)
+
+| 双击文件 | 作用 |
 | --- | --- |
-| 主控 | ESP32-S3 N16R8，双 Type-C，板载 CH340 |
-| IMU | BMI270；实测 I2C 地址 `0x68`、CHIP_ID `0x24` |
-| 下舵机 | HD-1910-C001，用户已设置 ID 1 |
-| 上舵机 | HD-1910-C001，用户已设置 ID 2 |
-| 总线适配器 | 已有 Waveshare Bus Servo Adapter (A)，后续 UART 控制使用 |
-| 当前供电 | 电脑 USB 仅供 ESP32 与 IMU；舵机供电未验收 |
+| `00_setup.cmd` | 首次安装电脑端所需的 Python 依赖，自动创建 `.venv` |
+| `01_flash.cmd` | 将已编译 V20 固件烧进 ESP32-S3；会先校验文件，并要求输入 `FLASH` |
+| `02_open_demo.cmd` | 打开保留的活动展示界面，默认未连接 |
+| `03_read_joint_zero.cmd` | 读取直立时两颗舵机的位置；只读和停止，不启动动作 |
 
-用户称量：每只舵机 23 g（含舵盘和原配螺钉），上部柱子 11 g、中间轴承部分 7 g、底座 13 g。所列部件合计 77 g，不是包含面包板、IMU、导线等的整机实测质量。
+电脑上先安装 Python，方法见第 0 章。首次安装需要联网；完成后不需要 GPU、训练环境或联网推理。
 
-## IMU 接线
+## 这版会做什么
 
-断电后接线，按板上丝印核对，不按照片左右方向猜引脚。
+- **手动开始**：连接后不会自己起身。需要勾选扶护确认、点击“启动起身”。
+- 用 ESP32 上的训练网络计算动作；站稳后的回零和停止由控制程序执行。
+- 上轴 ID1 范围 ±135°，下轴 ID2 范围 ±95°；范围都相对于各自机械零位。
+- 前倒单 ID2 分支的目标推进上限为 34 计数/20 ms，其他起身阶段通常为 26；回零为 9。实际速度还取决于供电、负载和舵机内部设置。
+- 每次连接/重启，底座需平放静止，重新采集姿态参考。一次动作最多 14 秒。
+- 点击红色停止按钮或按 **Esc** 会请求卸力，需继续扶住结构。
+- 自动保存每次实验的 CSV、JSONL 与会话信息到 `desktop/recordings/`。
 
-| ESP32-S3 | IMU |
-| --- | --- |
-| 3V3 | 3.3V |
-| GND | GND |
-| GPIO4 | SDA |
-| GPIO5 | SCL |
-| 不接 | INT |
+V20 已在原机器通过数值自检、IMU 与双舵机反馈/卸力检查；活动界面及数据层共 29 项软件测试通过。**不同机器、供电和组装状态的起身成功率，需要实际验证。** 当前“前倒加速”的惯性效果仍需现场测试。
 
-电脑接 ESP32 板背面标注 **COM** 的 Type-C 口，同时传输数据并供电；USB-OTG 口暂空着，无需再接充电头。此接法只验证 IMU。
+## 新手先记住这四件事
 
-## 固件编译与烧录
+1. **上面 ID1，下面 ID2。** ID 是舵机内存里的编号，与插在微雪哪个舵机口无关。
+2. **电脑 USB 给 ESP32 供电；独立稳压 5V 给微雪板和舵机供电。** ESP32、IMU、微雪共地。舵机大电流不经过面包板或 ESP32 引脚。
+3. 改 ID 时：微雪 USB 接电脑、两个跳线帽都在 **B**。运行机器人时：微雪通过三根信号线接 ESP32、两个跳线帽都在 **A**。
+4. 保持 IMU 固定在底座上；放倒的是整机。放倒后不要重新点校准。
 
-源码：[firmware/imu_reader/imu_reader.ino](firmware/imu_reader/imu_reader.ino)。Bosch 官方驱动及初始化配置随源码附带，无需另装传感器库。
+## 仓库内容
 
-本次验证环境：Arduino CLI 1.6.0、Espressif Arduino-ESP32 2.0.17。
-
-Arduino IDE 设置：`ESP32S3 Dev Module`、Flash `16MB`、PSRAM `Disabled`、USB CDC On Boot `Disabled`。先安装对应 ESP32 核心，再打开上述 `.ino` 编译上传。
-
-Arduino CLI 示例（端口号按本机修改）：
-
-```powershell
-arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-arduino-cli core install esp32:esp32@2.0.17 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
-arduino-cli compile --fqbn "esp32:esp32:esp32s3:CDCOnBoot=default,FlashSize=16M,PSRAM=disabled" --output-dir build firmware/imu_reader
-arduino-cli upload -p COM15 --fqbn "esp32:esp32:esp32s3:CDCOnBoot=default,FlashSize=16M,PSRAM=disabled,UploadSpeed=115200" --input-dir build firmware/imu_reader
+```text
+docs/                      分步骤教程、接线图、装配图
+desktop/                   唯一活动窗口 + 底层控制、通信和记录代码
+firmware/policy_shadow/    当前 V20 源码与 Bosch 驱动
+firmware/prebuilt/v20/     已编译固件、地址表、SHA-256 校验清单
+mechanical/stl/            底座、中间支架、顶部长杆打印件（mm）
+tools/                     烧录和直立位置读取工具
+firmware/imu_reader/       早期 IMU 试验固件，非活动主程序
 ```
 
-烧录会覆盖原程序；有需要时先备份。设备原始闪存备份只留在本机，未上传。此固件不发送舵机指令。
+展示 UI 只使用 `desktop/event_app.py`，双击入口只有 `02_open_demo.cmd`。`desktop/controller.py` 是内部控制与记录代码，不提供旧界面入口。现场修改前请复制整份目录作为备份。
 
-## 电脑实时查看
-
-安装带 Tkinter 的 Python 3（Windows 官方安装包默认包含），首次双击 `setup_monitor.cmd` 安装项目虚拟环境与 pyserial，然后双击 `view_imu.cmd`。窗口默认 COM15，可切换至设备管理器中的实际端口。
-
-也可以手动运行：
-
-```powershell
-python -m pip install -r requirements.txt
-python monitor/monitor.py --port COM15
-```
-
-串口使用 `115200`。不要同时打开另一个串口监视器占用该端口。固件配置传感器 100 Hz 采样、约 10 Hz 输出，显示：
-
-- 三轴加速度（g）、三轴角速度（°/s）；
-- 加速度合量（g）；
-- 基于加速度的静态 Roll／Pitch（°）。
-
-静态倾角不等于融合姿态，没有航向角；机器人运动时不能直接用于平衡控制。尚未标定零偏及芯片坐标到机器人坐标的转换。
-
-程序自动保存原始日志；超过 1.5 秒没有新样本会清空读数并标注过期。
-
-## 真机验证记录
-
-2026-11-15：Bosch 驱动初始化成功，设置与读回配置一致；5 秒采集到 48 组有效数据，时间戳递增，加速度合量均值 **1.007593 g**。本次静止附近读数支持通信和基础测量正常，不代表精度标定或动态性能验收。
-
-详见 [验证摘要](validation/imu_readout_2026-11-15.json) 与 [实测 CSV](validation/imu_sample_2026-11-15.csv)。
-
-## 下一步
-
-1. 确认舵机独立电源、实测输出电压及线路容量。
-2. ESP32 经半双工 TTL 总线适配器，只读检查 ID 1／ID 2 的响应与状态。
-3. 支撑结构、核对关节零位和机械限位，再逐只做低速小角度动作。
-4. 完成 IMU 标定、坐标对齐后再做站立控制与仿真实机对照。
-
-详见 [舵机供电与首次测试](docs/servo_power.md)。
-
-## 来源
-
-- 机构与任务参考：[homemadegarbage/SelfRisingRobot](https://github.com/homemadegarbage/SelfRisingRobot)。本次只归档新硬件的 IMU 验证，不声称复现了原项目策略。
-- IMU 驱动：[Bosch BMI270 SensorAPI](https://github.com/boschsensortec/BMI270_SensorAPI)，固定提交 `41129fcfe39c583ee5462d79195741945d51c1fe`；保留原始 BSD-3-Clause 许可证，见 [第三方说明](THIRD_PARTY_NOTICES.md)。
+硬件资料与软件来源列于[第 0 章](docs/00-preparation.md)和[第三方说明](THIRD_PARTY_NOTICES.md)。早期版本见[历史归档](docs/archive/README_20261115.md)。

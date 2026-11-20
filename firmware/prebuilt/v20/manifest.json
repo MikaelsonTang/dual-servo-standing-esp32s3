@@ -1,0 +1,55 @@
+{
+  "firmware": "HD1910_RECOVERY_V20",
+  "board": "ESP32-S3 N16R8, external CH340 UART/COM USB",
+  "core": "esp32:esp32@2.0.17",
+  "fqbn": "esp32:esp32:esp32s3:FlashSize=16M,PSRAM=opi,CDCOnBoot=default",
+  "files": {
+    "policy_shadow.ino.bin": "e1c01d8eaa54f0d78ddc173cad599dc381a8e353c4698ecbcd966adca7ef631e",
+    "policy_shadow.ino.bootloader.bin": "2a71d69b471e20c2bac7fb469f3c6a807b3ebee780e348e5889db0da849ca363",
+    "policy_shadow.ino.partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
+    "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0"
+  },
+  "flash_offsets": {
+    "policy_shadow.ino.bootloader.bin": "0x0",
+    "policy_shadow.ino.partitions.bin": "0x8000",
+    "boot_app0.bin": "0xe000",
+    "policy_shadow.ino.bin": "0x10000"
+  },
+  "joint_zero_id1_id2": [
+    337,
+    2872
+  ],
+  "range_id1_id2_deg": [
+    135,
+    95
+  ],
+  "model_sha256": "86647683a0628acff8f2fe8699cb7e644ba2aed419d94edb244a00a23022503e",
+  "mount_rotation": "fixed original BMI270 installation; startup calibration does not replace axis/mount calibration",
+  "sha256_scope": "These binaries are the uploaded V20 artifacts; no personal flash/NVS backup.",
+  "source_text_sha256": {
+    "firmware/policy_shadow/attitude_filter.h": "f80a9baa714ca3aae6c562b3093391431e7393f10ef87ad048b7daeb105a748b",
+    "firmware/policy_shadow/calibration_generated.h": "5c2f5719ad61422c41c5fe9937ac49711dfc57c3fa2326256830ce1fa9461ea8",
+    "firmware/policy_shadow/directional_checks.h": "5b5e1990f292b6ff5adcf7e4c0626775aefcafaa318d83e46ff38285f47a9e33",
+    "firmware/policy_shadow/directional_policy.h": "e7b5e12f34e72b02ed465773e1e16aea6676ceefc5e0851ff09fc84cb13aec0f",
+    "firmware/policy_shadow/directional_runtime.h": "d649e457fb1b24b8b123a729e6888c0cdbab0fbc00bd148a6bc2f8befe6fd025",
+    "firmware/policy_shadow/directional_vectors.h": "0c2972eeee03890c65bc0150ee9f7c4893afeeb6a96d3e99cc46b9685638b161",
+    "firmware/policy_shadow/imu_scale.h": "f443ee1a0fab1c8196bc707ffd923c761ced5a54d8170e8d4c855efa8c3a33ec",
+    "firmware/policy_shadow/imu_setup.h": "19c7760ba03bc1bc11dc1f0a5a86279824a9919a7ebaad3723015b7a76af8abc",
+    "firmware/policy_shadow/joint_limits.h": "a4deacb05c1dbdda12f89c24f0ea0b6d2e90fc4ea3c6afaab6da50cb7ee5a775",
+    "firmware/policy_shadow/limited_motion.h": "7928d044dd4141f5fcbb3e6de2f95f0f0e8d41e4df6d66b2cc919f7257a2a6c5",
+    "firmware/policy_shadow/policy_control.h": "c0b5704ae4ba482e851b13c8c4ec72188f0c96ebe37279eb4c7929e9ecb4bfa9",
+    "firmware/policy_shadow/policy_network.h": "c6e69059c87467dd9b55321f939c7b64da2d9e77ff51ecb8667217b7045d094f",
+    "firmware/policy_shadow/policy_networks.h": "e4e85b4d347fcd7aec0ee963571cb88d29bc6db790f5539ffd1dc2788fef18da",
+    "firmware/policy_shadow/policy_shadow.ino": "f055809ed70582d8b6e4f3150f50c353414320f27969b37a5872d99f0d0d1e04",
+    "firmware/policy_shadow/servo_protocol.h": "1b8f950cdb7849df770a3f6059e8f485251a92f91772ec48417bf2749786997e",
+    "firmware/policy_shadow/servo_reader.h": "884479e1fa0acbe00beeb1bc6b2db62a2afefba7a131dc11fccdec8d0ed81ccd",
+    "firmware/policy_shadow/shadow_core.h": "011f20e5099197bd542e8c6d1e369293b0bb9e39a84c14cdc130e9011d2976b8",
+    "firmware/policy_shadow/startup_zero.h": "063fc5ee3bb65690754088efcad6f8f1a6246bc293e43143441c16a5e599ee61",
+    "firmware/policy_shadow/test_vectors.h": "177f7c029ad906493cec2f686b24338c40c024b6e3891b40c8553f5beb1fc81e",
+    "firmware/policy_shadow/src/bosch/bmi2.c": "1ca2409e2692d6b55a1d50caeec2a6abb4f4c161550820e5334654bf5217504f",
+    "firmware/policy_shadow/src/bosch/bmi2.h": "fd4dac73cad69b50e3040d1f75efd456fc8631d4f62396ac12c7705c0c9c1739",
+    "firmware/policy_shadow/src/bosch/bmi270.c": "c825518f825bafdc43a17c9b8d5eaa244a140a52a59dfcc356fe057589587d27",
+    "firmware/policy_shadow/src/bosch/bmi270.h": "7eb4739f45595cf234e59bfdafdcc334d0a2ceff43965f3ab27ca21a0c320f0e",
+    "firmware/policy_shadow/src/bosch/bmi2_defs.h": "ebb0c7e75330e6d35efeaf7c3ff6324bb623291a88f46527db00bb2ff04947c4"
+  }
+}
