@@ -35,6 +35,10 @@
 
 改完 ID，断电、关 FD、拔掉微雪到电脑 USB；将两个跳线帽从 B 都移到 **A**。
 
+<p align="center"><img src="images/adapter-mode-a.webp" width="620" alt="微雪官方实物特写：两个黄色跳线帽都在 A 位，顶部可见 TX RX GND"></p>
+
+*图源：[微雪官方 UART 控制示例](https://docs.waveshare.net/Bus_Servo_Adapter_A/Product-Wiring-Example/)。红框中的帽都靠 A；右上角的 `TX / RX / GND` 是下面三根线的出发点。板上的电压印字不改变本项目的 5V 接法。*
+
 | 微雪 Bus Servo Adapter (A) 丝印 | ESP32-S3 |
 | --- | --- |
 | **TX** | **GPIO17 / 17** |
@@ -43,6 +47,12 @@
 | VCC/5V 等供电脚 | 本接法不接 ESP32 |
 
 **本型号微雪板是 TX 对 MCU TX、RX 对 MCU RX。** 与常见串口交叉接法不同，见[厂商说明](https://docs.waveshare.net/Bus_Servo_Adapter_A/Product-Wiring-Example/)。其他转接板查自己的文档。
+
+### 把七根低功率线逐条对上
+
+![七线核对图：BMI270 四根线和微雪 UART 三根线分别接到 ESP32 的对应丝印](images/seven-wires.svg)
+
+图中端点按功能排布，**不是实物针脚顺序，也不是面包板孔位**。先找丝印，再找同组孔；接好一根，就在本章末尾打勾。颜色只帮助看线，不能代替针脚名称。
 
 舵机 D 数据线不要直接接 GPIO17。微雪负责单线半双工转换，三芯杜邦转接线不具备这个功能。
 

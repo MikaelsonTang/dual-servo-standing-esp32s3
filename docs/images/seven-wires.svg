@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="808" viewBox="0 0 1200 808" role="img" aria-labelledby="title desc">
+  <title id="title">七根低功率线逐一核对</title>
+  <desc id="desc">BMI270 的 3V3、GND、SDA、SCL 分别接 ESP32 的 3V3、GND、GPIO6、GPIO7；微雪的 TX、RX、GND 分别接 GPIO17、GPIO18、GND。这是电气关系图，不表示实物针序。</desc>
+  <rect width="1200" height="808" rx="28" fill="#f4f5f9"/>
+  <g font-family="Microsoft YaHei UI, Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+    <text x="32" y="48" font-size="28" font-weight="600" fill="#202b43">七根线，一根一根对</text>
+    <text x="32" y="80" font-size="18" fill="#768198">看引脚名称，不数照片中左边第几针。所有端点均按功能排布。</text>
+    <rect x="40" y="107" width="354" height="306" rx="22" fill="white"/>
+    <rect x="40" y="438" width="354" height="252" rx="22" fill="white"/>
+    <rect x="810" y="107" width="350" height="583" rx="22" fill="white"/>
+    <text x="66" y="148" font-size="23" font-weight="600" fill="#188476">BMI270 · INT 留空</text>
+    <text x="66" y="479" font-size="23" font-weight="600" fill="#6155d9">微雪 · 两个帽都在 A</text>
+    <text x="836" y="148" font-size="23" font-weight="600" fill="#202b43">ESP32-S3</text>
+    <g fill="none" stroke-width="4" stroke-linecap="round">
+      <path d="M342 188 H850" stroke="#d44e62"/><path d="M342 250 H850" stroke="#768198"/>
+      <path d="M342 312 H850" stroke="#188476"/><path d="M342 374 H850" stroke="#b88831"/>
+      <path d="M342 519 H850" stroke="#6155d9"/><path d="M342 581 H850" stroke="#7f72dc"/>
+      <path d="M342 643 H850" stroke="#768198"/>
+    </g>
+    <g stroke="white" stroke-width="3">
+      <g fill="#d44e62"><circle cx="342" cy="188" r="7"/><circle cx="850" cy="188" r="7"/></g>
+      <g fill="#768198"><circle cx="342" cy="250" r="7"/><circle cx="850" cy="250" r="7"/><circle cx="342" cy="643" r="7"/><circle cx="850" cy="643" r="7"/></g>
+      <g fill="#188476"><circle cx="342" cy="312" r="7"/><circle cx="850" cy="312" r="7"/></g>
+      <g fill="#b88831"><circle cx="342" cy="374" r="7"/><circle cx="850" cy="374" r="7"/></g>
+      <g fill="#6155d9"><circle cx="342" cy="519" r="7"/><circle cx="850" cy="519" r="7"/></g>
+      <g fill="#7f72dc"><circle cx="342" cy="581" r="7"/><circle cx="850" cy="581" r="7"/></g>
+    </g>
+    <g fill="#202b43" font-family="Segoe UI, Microsoft YaHei UI, sans-serif" font-size="23">
+      <text x="68" y="196">①  3.3V / 3V3</text><text x="68" y="258">②  GND</text><text x="68" y="320">③  SDA</text><text x="68" y="382">④  SCL</text>
+      <text x="68" y="527">⑤  TX</text><text x="68" y="589">⑥  RX</text><text x="68" y="651">⑦  GND</text>
+      <text x="880" y="196">3V3</text><text x="880" y="258">GND</text><text x="880" y="320">GPIO6 / 6</text><text x="880" y="382">GPIO7 / 7</text>
+      <text x="880" y="527">GPIO17 / 17</text><text x="880" y="589">GPIO18 / 18</text><text x="880" y="651">GND</text>
+    </g>
+    <g font-size="17" fill="#768198" text-anchor="middle">
+      <text x="596" y="177">IMU 电源 · 仅 3.3V</text><text x="596" y="239">IMU 参考地</text>
+      <text x="596" y="301">I²C 数据</text><text x="596" y="363">I²C 时钟</text>
+      <text x="596" y="508">本型号微雪：TX 对 MCU TX</text><text x="596" y="570">本型号微雪：RX 对 MCU RX</text><text x="596" y="632">与舵机电源共地</text>
+    </g>
+    <text x="40" y="735" font-size="19" font-weight="600" fill="#d44e62">舵机大电流另走：独立稳压 5V → 微雪电源端子 → 原装舵机线。</text>
+    <text x="40" y="773" font-size="17" fill="#768198">本图不表示面包板孔位；舵机 D 不直连 ESP32；微雪 USB 运行时留空；颜色仅为阅读辅助。</text>
+  </g>
+</svg>

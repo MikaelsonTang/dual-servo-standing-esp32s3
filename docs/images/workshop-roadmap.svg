@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="496" viewBox="0 0 1200 496" role="img" aria-labelledby="title desc">
+  <title id="title">从零件到起身：六步路线</title>
+  <desc id="desc">依次准备器材、设置舵机编号、装配结构、按丝印接线、烧录程序，最后平放连接并启动一次起身。</desc>
+  <rect width="1200" height="496" rx="28" fill="#f4f5f9"/>
+  <g font-family="Microsoft YaHei UI, Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+    <text x="32" y="48" fill="#202b43" font-size="28" font-weight="600">从零件到第一次起身</text>
+    <text x="32" y="80" fill="#768198" font-size="17">每一步先核对完成标志，再进入下一步。</text>
+    <g fill="#fff">
+      <rect x="32" y="106" width="366" height="150" rx="22"/>
+      <rect x="417" y="106" width="366" height="150" rx="22"/>
+      <rect x="802" y="106" width="366" height="150" rx="22"/>
+      <rect x="32" y="274" width="366" height="150" rx="22"/>
+      <rect x="417" y="274" width="366" height="150" rx="22"/>
+      <rect x="802" y="274" width="366" height="150" rx="22"/>
+    </g>
+    <g fill="#6155d9" font-family="Segoe UI, sans-serif" font-size="30" font-weight="600">
+      <text x="54" y="151">01</text><text x="439" y="151">02</text><text x="824" y="151">03</text>
+      <text x="54" y="319">04</text><text x="439" y="319">05</text><text x="824" y="319">06</text>
+    </g>
+    <g fill="#202b43" font-size="23" font-weight="600">
+      <text x="111" y="148">认识器材</text><text x="496" y="148">设置舵机编号</text><text x="881" y="148">组装结构</text>
+      <text x="111" y="316">按丝印接线</text><text x="496" y="316">烧录 ESP32</text><text x="881" y="316">启动与回位</text>
+    </g>
+    <g fill="#768198" font-size="18">
+      <text x="54" y="190">分清数据线、信号线和电源线</text><text x="54" y="224">电脑识别 COM，安装显示 Setup OK</text>
+      <text x="439" y="190">FD 一次只连接一颗舵机</text><text x="439" y="224">上 ID1 / 下 ID2，均为 1000000</text>
+      <text x="824" y="190">底座 → 下轴 → 中间支架 → 上轴</text><text x="824" y="224">两轴垂直，IMU 固定在底座</text>
+      <text x="54" y="358">IMU 四根线 + 微雪三根信号线</text><text x="54" y="392">运行 A/A，独立稳压 5V 供舵机</text>
+      <text x="439" y="358">只接电脑 USB，先断舵机电源</text><text x="439" y="392">写入校验成功，窗口识别 V20</text>
+      <text x="824" y="358">平放连接 → 放倒扶护 → 手动启动</text><text x="824" y="392">等回零、确认卸力，再做下一轮</text>
+    </g>
+    <text x="32" y="467" fill="#188476" font-size="18">自己新装的机器：第一次运动前，还要核对机械零位与 IMU 方向（第 6 章）。</text>
+  </g>
+</svg>

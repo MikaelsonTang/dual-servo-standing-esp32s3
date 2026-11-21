@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="350" viewBox="0 0 1200 350" role="img" aria-labelledby="title desc">
+  <title id="title">电脑端三个启动文件的区别</title>
+  <desc id="desc">00_setup.cmd 安装电脑依赖；01_flash.cmd 烧录 ESP32；02_open_demo.cmd 打开活动窗口。日常展示不需要重复烧录。</desc>
+  <rect width="1200" height="350" rx="28" fill="#f4f5f9"/>
+  <g font-family="Microsoft YaHei UI, Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+    <text x="32" y="47" fill="#202b43" font-size="28" font-weight="600">这三个文件，分别做什么？</text>
+    <g fill="white"><rect x="32" y="76" width="366" height="209" rx="22"/><rect x="417" y="76" width="366" height="209" rx="22"/><rect x="802" y="76" width="366" height="209" rx="22"/></g>
+    <g fill="#6155d9" font-size="22" font-weight="600"><text x="56" y="119">首次装电脑环境</text><text x="441" y="119">把程序写进板子</text><text x="826" y="119">打开展示窗口</text></g>
+    <g fill="#202b43" font-family="Consolas, monospace" font-size="23"><text x="56" y="164">00_setup.cmd</text><text x="441" y="164">01_flash.cmd</text><text x="826" y="164">02_open_demo.cmd</text></g>
+    <g fill="#768198" font-size="18">
+      <text x="56" y="209">安装依赖，需要联网</text><text x="56" y="248">完成标志：Setup OK</text>
+      <text x="441" y="209">只接 ESP32 USB，断舵机电源</text><text x="441" y="248">完成标志：Upload completed</text>
+      <text x="826" y="209">平放连接，等待姿态零点就绪</text><text x="826" y="248">日常展示从这里开始</text>
+    </g>
+    <text x="32" y="324" fill="#188476" font-size="18">安装、烧录、运行是三件事。换电脑重装环境；日常打开窗口不需要反复烧录。</text>
+  </g>
+</svg>

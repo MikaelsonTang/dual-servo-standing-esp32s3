@@ -40,3 +40,14 @@ executables. Python packages are declared in `requirements-workshop.txt`.
 Windows fonts used by the UI are referenced by installed family name; font files
 are not included. Assembly renders and the three HD1910 bracket STL files describe
 this project's adapted geometry; the servo manufacturer's full STEP model is not included.
+
+## Tutorial pictures
+
+Official Waveshare adapter photos and the FEETECH HD1910 product photo are reproduced
+as credited identification references. Copyright remains with their respective
+owners; no new license is asserted over these images. FD 1.9.8.3 screenshots show
+the unconnected software for teaching its controls and do not redistribute the
+executable. The event-window screenshot shows this repository's unchanged UI.
+The workshop hero is an AI-generated conceptual rendering based on the project's
+CAD and is visibly captioned as such. Per-file sources, capture state and the final
+generation prompt are recorded in [`docs/images/README.md`](docs/images/README.md).
