@@ -1,5 +1,7 @@
 # 从零搭建一台双舵机自起身机器人
 
+> **新增：[ESP32-C3 SuperMini 专用教程与 V24 完整包](esp32c3/README.md)**。C3 用户从该入口开始，包含详细针脚图、BOOT 接 USB 救援、烧录程序与展示窗口。下文为原 ESP32-S3 版本。
+
 **ESP32-S3 · HD1910 × 2 · BMI270 · Windows 活动教程**
 
 ![HD1910 双舵机机器人写实效果图：蓝色双槽底座、橙色支架和两颗黑色舵机](docs/images/workshop-hero.png)

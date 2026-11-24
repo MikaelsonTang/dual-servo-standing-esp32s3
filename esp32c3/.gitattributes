@@ -1,0 +1,3 @@
+# Preserve vendored driver/generated-vector trailing lines verbatim.
+firmware/policy_shadow/src/bosch/* whitespace=-blank-at-eof
+firmware/policy_shadow/test_vectors.h whitespace=-blank-at-eof

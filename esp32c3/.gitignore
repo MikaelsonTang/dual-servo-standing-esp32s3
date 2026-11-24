@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.obj
+*.exe
+*.pdb
+build/
+desktop/recordings/
+local_joint_zero.json
