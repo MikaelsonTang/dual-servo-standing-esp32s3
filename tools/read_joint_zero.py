@@ -1,11 +1,11 @@
-"""Read V20 identity and joint positions, with explicit STOP. No powered motions."""
+"""Read S3 firmware identity and joint positions, with explicit STOP. No powered motions."""
 import json
 from pathlib import Path
 import sys
 import time
 import serial
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'desktop'))
-from data import Identity,parse,FW
+from data import Identity,parse
 
 def main():
     portname=input('ESP32 COM port (example COM3): ').strip()
@@ -31,9 +31,9 @@ def main():
     if any(max(r[f's{i}_position'] for r in rows)-min(r[f's{i}_position'] for r in rows)>8 for i in (1,2)):
         raise RuntimeError('Joints moved during measurement; hold the upright pose and retry.')
     out=Path(__file__).resolve().parents[1]/'local_joint_zero.json'
-    out.write_text(json.dumps({'firmware':FW,'positions':positions,'samples':30,'note':'Upright pose must be confirmed by a person; values are not automatically applied.'},indent=2)+'\n',encoding='utf-8')
+    out.write_text(json.dumps({'firmware':identity.firmware_name,'positions':positions,'samples':30,'note':'Upright pose must be confirmed by a person; values are not automatically applied.'},indent=2)+'\n',encoding='utf-8')
     print('Upper ID1:',positions['1'],'Lower ID2:',positions['2'])
-    print('Saved local_joint_zero.json. Follow docs/06-calibration.md before changing source.')
+    print('Saved local_joint_zero.json for read-only comparison; the ESP32 zero is unchanged.')
 
 if __name__=='__main__':
     try:main()

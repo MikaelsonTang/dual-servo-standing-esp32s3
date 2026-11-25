@@ -11,6 +11,7 @@ backup/
 *.elf
 *.map
 !firmware/prebuilt/v20/*.bin
+!firmware/prebuilt/v21/*.bin
 !esp32c3/release/*.bin
 desktop/recordings/
 local_joint_zero.json

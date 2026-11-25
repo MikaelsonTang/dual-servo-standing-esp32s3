@@ -4,7 +4,7 @@ import time
 import serial
 from data import Identity, parse
 
-ALLOWED={'START','PAUSE','ZERO','CAL','STATUS','STOP','HOLD','TEST1','TEST2','POLICY','GETUP'}
+ALLOWED={'START','PAUSE','ZERO','CAL','STATUS','STOP','HOLD','TEST1','TEST2','POLICY','GETUP','JOINTZERO'}
 
 class Link(threading.Thread):
     def __init__(self,port,ui_required=False):

@@ -2,7 +2,7 @@
 setlocal
 cd /d "%~dp0"
 if not exist ".venv\Scripts\python.exe" goto missing
-".venv\Scripts\python.exe" tools\flash_workshop.py
+".venv\Scripts\python.exe" tools\flash_v21.py
 pause
 exit /b
 :missing

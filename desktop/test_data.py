@@ -8,7 +8,7 @@ from transport import Link
 
 class Tests(unittest.TestCase):
     def row(self):
-        row={k:0 for k in FIELDS};row.update(direction_sign=1,mode=1,quality=1,qw=1,az_g=1,acc_norm=1,motion_cmd1=JOINT_ZEROS[1],motion_cmd2=JOINT_ZEROS[2])
+        row={k:0 for k in FIELDS};row.update(direction_sign=1,mode=1,quality=1,qw=1,az_g=1,acc_norm=1,motion_cmd1=JOINT_ZEROS[1],motion_cmd2=JOINT_ZEROS[2],joint_zero1=JOINT_ZEROS[1],joint_zero2=JOINT_ZEROS[2],joint_zero_saved=1)
         return row,','.join(str(row[k]) for k in FIELDS)
     def test_reject_nonfinite_and_invalid_targets(self):
         row,line=self.row();self.assertEqual(parse(line)['mode'],1)

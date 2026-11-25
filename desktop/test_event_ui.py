@@ -15,13 +15,13 @@ class EventTests(unittest.TestCase):
         self.sent=[]
         self.ui.link=SimpleNamespace(verified=True,identity=SimpleNamespace(firmware_name=FW),
             send=self.sent.append,stop_event=SimpleNamespace(set=lambda:None),join=lambda **k:None)
-        r={k:0 for k in FIELDS};r.update(ms=1000,quality=1,zero_ready=1,zero_seq=1,motion_off=1,direction_sign=1)
+        r={k:0 for k in FIELDS};r.update(ms=1000,quality=1,zero_ready=1,zero_seq=1,motion_off=1,direction_sign=1,joint_zero1=JOINT_ZEROS[1],joint_zero2=JOINT_ZEROS[2],joint_zero_saved=1)
         for i,z in JOINT_ZEROS.items():r.update({f's{i}_position':z,f's{i}_state':1,f's{i}_voltage':5})
         self.ui.receive(r)
     def tearDown(self):
         self.ui.close();self.tmp.cleanup()
     def test_layout_keeps_all_three_steps_and_stop_visible(self):
-        for size in ['1000x760','1120x820']:
+        for size in ['1000x810','1120x870']:
             self.root.geometry(size);self.root.update_idletasks();self.ui.draw()
             for label in self.ui.guide_steps:
                 self.assertTrue(label.winfo_ismapped())

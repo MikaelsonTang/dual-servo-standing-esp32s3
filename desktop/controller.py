@@ -10,7 +10,7 @@ import time
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import serial.tools.list_ports
-from data import DIRECTION_MODES, DIRECTIONAL_FW, MODES, REASONS, MOTION_REASONS, RECOVERY_STAGES, motion_reason_text, JOINT_ZEROS, FW, target_limits, startup_tolerance, start_positions_ok, Recorder, replay_rows
+from data import row_joint_zeros, DYNAMIC_ZERO_FW, DIRECTION_MODES, DIRECTIONAL_FW, MODES, REASONS, MOTION_REASONS, RECOVERY_STAGES, motion_reason_text, JOINT_ZEROS, FW, target_limits, startup_tolerance, start_positions_ok, Recorder, replay_rows
 from transport import Link
 
 ROOT=Path(__file__).resolve().parent
@@ -45,7 +45,7 @@ class Dashboard:
         self.cal_btn=ttk.Button(toolbar,text='校准零点',command=lambda:self.command('CAL'));self.cal_btn.pack(side='right',padx=6)
         status=tk.Frame(root,bg=BG);status.pack(fill='x',padx=26,pady=(12,10))
         self.state=tk.Label(status,text='连接后先进行模型自检；底座保持平放静止，自动归零',font=('Microsoft YaHei UI',11,'bold'),bg=BG,fg=INK);self.state.pack(side='left')
-        self.limit_label=tk.Label(status,text='上轴 ID1 ±135° · 下轴 ID2 ±95° / 14 秒',bg=BG,fg=MUTED);self.limit_label.pack(side='right')
+        self.limit_label=tk.Label(status,text='上轴 ID1 ±135° · 下轴 ID2 ±95°',bg=BG,fg=MUTED);self.limit_label.pack(side='right')
         cards=tk.Frame(root,bg=BG);cards.pack(fill='x',padx=24)
         self.values={};self.servo_labels={}
         for i,(key,title,subtitle,color) in enumerate([
@@ -72,7 +72,7 @@ class Dashboard:
         self.stop_btn=tk.Button(motionbar,text='停止 / 卸力 Esc',command=self.emergency,bg=RED,fg='white',font=('Microsoft YaHei UI',11,'bold'),relief='flat',padx=12,pady=6);self.stop_btn.pack(side='right')
         self.motion_label=tk.Label(root,text='输出未启动 · 停止会卸力，请保持扶护',bg=BG,fg=MUTED,anchor='w');self.motion_label.pack(fill='x',padx=26,pady=(0,8))
         recoverybar=tk.Frame(root,bg=CARD,padx=12,pady=8);recoverybar.pack(fill='x',padx=24,pady=(0,8))
-        self.getup_btn=ttk.Button(recoverybar,text='扶护起身 · 14 秒',style='Accent.TButton',command=lambda:self.move('GETUP'))
+        self.getup_btn=ttk.Button(recoverybar,text='扶护起身',style='Accent.TButton',command=lambda:self.move('GETUP'))
         self.getup_btn.pack(side='left');self.motion_buttons.append(self.getup_btn)
         self.branch=tk.Label(recoverybar,text='先平放完成校准，再整体轻放倒；勾选扶护后启动。停止会卸力。',bg=CARD,fg=MUTED)
         self.branch.pack(side='left',padx=12)
@@ -87,7 +87,7 @@ class Dashboard:
         self.log=tk.Text(root,height=3,bg='#e4ecef',fg=MUTED,relief='flat',font=('Microsoft YaHei UI',9),wrap='word',state='disabled');self.log.pack(fill='x',padx=24,pady=(0,12))
         root.protocol('WM_DELETE_WINDOW',self.close);root.bind('<F11>',lambda e:self.toggle_fullscreen());root.bind('<Escape>',lambda e:self.emergency())
         self.refresh();self.log_message('准备就绪。初始目标是计算参考零位；重置目标不会让舵机回零。')
-        root.after(50,self.update)
+        self.update_job=root.after(50,self.update)
     def record_dir(self):
         p=ROOT/'recordings';p.mkdir(exist_ok=True);return str(p)
     def refresh(self):
@@ -154,6 +154,7 @@ class Dashboard:
         self.source.configure(text='记录回放 · 非实时',bg='#f5e5d8',fg=ORANGE);self.connection.configure(text='离线回放',fg=ORANGE)
         self.start_btn.configure(text='播放记录');self.pause_btn.configure(text='暂停回放');self.log_message('已加载 '+str(path));self.start()
     def receive(self,row):
+        self.display_zeros=row_joint_zeros(row)
         if self.row and row['ms']<self.row['ms']:
             self.history.clear();self.last_infer=0
         self.row=row;self.last_received=time.monotonic();self.history.append(row);self.sample_count+=1
@@ -195,9 +196,9 @@ class Dashboard:
             if time.monotonic()-self.last_draw>.10:self.draw();self.last_draw=time.monotonic()
         except Exception as exc:
             self.log_message('面板错误：'+str(exc));self.pause()
-        self.root.after(30,self.update)
+        self.update_job=self.root.after(30,self.update)
     def draw(self):
-        self.limit_label.configure(text=f'上轴 ID1 ±{math.degrees(self.display_limits[1]):.0f}° · 下轴 ID2 ±{math.degrees(self.display_limits[0]):.0f}° / 14 秒')
+        self.limit_label.configure(text=f'上轴 ID1 ±{math.degrees(self.display_limits[1]):.0f}° · 下轴 ID2 ±{math.degrees(self.display_limits[0]):.0f}°'+(' · 起身无总时限' if self.link and self.link.verified and self.link.identity.firmware_name==FW else ''))
         live=self.mode=='live';fresh=self.row is not None and (not live or time.monotonic()-self.last_received<.6)
         imu_valid=fresh and self.row['quality'] in (1,2) and self.row['age_us']<=30000
         valid=imu_valid and self.row['zero_ready']==1
@@ -205,6 +206,8 @@ class Dashboard:
         active_fw=self.link.identity.firmware_name if connected else FW if live else getattr(self.replay,'firmware',None)
         tolerance=startup_tolerance(active_fw)
         ready_motion=bool(live and connected and valid and self.row['motion_phase']==0 and self.row['motion_off']==1 and self.supported.get())
+        if ready_motion and active_fw in DYNAMIC_ZERO_FW:
+            ready_motion=self.row.get('joint_zero_saved')==1 and self.row.get('joint_zero_state')!=1
         if ready_motion:
             ready_motion=start_positions_ok(self.row,active_fw) and all(self.row[f's{i}_state']==1 and self.row[f's{i}_age_ms']<=80 and self.row[f's{i}_torque']==0 for i in JOINT_ZEROS)
         for b in self.motion_buttons:b.configure(state='normal' if ready_motion else 'disabled')
@@ -215,7 +218,7 @@ class Dashboard:
             actual_fresh=all(r[f's{i}_state']==1 and r[f's{i}_age_ms']<=80 for i in (1,2))
             if not actual_fresh:label='舵机反馈不新鲜，无法确认当前卸力状态'
             if phase==0 and actual_fresh and r['motion_reason'] in (0,1,12,19) and not start_positions_ok(r,active_fw):
-                why=f'请摆正并保持：ID1 {JOINT_ZEROS[1]-tolerance}～{JOINT_ZEROS[1]+tolerance}；ID2 {JOINT_ZEROS[2]-tolerance}～{JOINT_ZEROS[2]+tolerance}'
+                why=f'请摆正并保持：ID1 {self.display_zeros[1]-tolerance}～{self.display_zeros[1]+tolerance}；ID2 {self.display_zeros[2]-tolerance}～{self.display_zeros[2]+tolerance}'
             elif phase==0 and r['motion_reason'] in (0,1,12,19) and live and connected and valid and actual_fresh and not self.supported.get():
                 why='位置满足启动范围；扶稳后勾选“已扶稳机器人”'
             target_text=f'当前发送目标 ID1 {int(r["motion_cmd1"])} / ID2 {int(r["motion_cmd2"])}' if phase==2 else f'软件零位 ID1 {self.display_zeros[1]} / ID2 {self.display_zeros[2]}'
@@ -313,4 +316,6 @@ class Dashboard:
         c.create_text(left,bottom+16,text='−15 s',anchor='w',fill=MUTED,font=('Segoe UI',9));c.create_text(right,bottom+16,text='现在' if self.mode=='live' else '回放位置',anchor='e',fill=MUTED,font=('Microsoft YaHei UI',9))
     def toggle_fullscreen(self):self.fullscreen=not self.fullscreen;self.root.attributes('-fullscreen',self.fullscreen)
     def exit_fullscreen(self):self.fullscreen=False;self.root.attributes('-fullscreen',False)
-    def close(self):self.disconnect();self.root.destroy()
+    def close(self):
+        self.root.after_cancel(self.update_job)
+        self.disconnect();self.root.destroy()
