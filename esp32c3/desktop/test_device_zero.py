@@ -5,6 +5,13 @@ from test_event_ui import EventTests
 from data import FW,FIELDS,parse,start_positions_ok,Recorder,replay_rows
 
 class DeviceZeroTests(EventTests):
+    def test_v26_has_no_recovery_total_deadline_in_ui_or_metadata(self):
+        from data import home_settings,recovery_pacing
+        self.ui.draw();self.assertIn('无总时限',self.ui.limit_label.cget('text'))
+        self.assertNotIn('14 秒',self.ui.limit_label.cget('text'))
+        self.assertIsNone(home_settings(FW)['total_deadline_ms'])
+        profile=recovery_pacing(FW)
+        self.assertEqual((profile['current_limit_register'],profile['torque_limit_register'],profile['speed_register']),(150,900,150))
     def custom(self,saved=1):
         r=dict(self.ui.row,joint_zero1=4045,joint_zero2=321,joint_zero_saved=saved,
                s1_position=4045,s2_position=321,motion_cmd1=4045,motion_cmd2=321)

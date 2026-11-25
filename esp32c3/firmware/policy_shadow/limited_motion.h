@@ -25,7 +25,7 @@ constexpr int HOME_STEP=9, HOME_LEAD=24, HOME_TOLERANCE=8;
 // Both joints can lag during recovery. Pace each against its own fresh feedback
 // in every network branch; retain the independent 512-count tracking stop.
 constexpr uint16_t RECOVERY_CURRENT=ServoWriteLimits::CURRENT, RECOVERY_TORQUE=ServoWriteLimits::TORQUE, RECOVERY_SPEED=ServoWriteLimits::SPEED;
-constexpr int RECOVERY_STEP=52, FRONT_STEP=68, RECOVERY_LEAD=192;
+constexpr int RECOVERY_STEP=78, FRONT_STEP=104, RECOVERY_LEAD=192;
 inline uint16_t signedWord(int position){return position<0?uint16_t(-position)|0x8000:uint16_t(position);}
 inline float encoderRadians(int i,int encoder){return (ZERO[i]-encoder)/COUNTS_PER_RAD;}
 inline int encoded(int i,float angle,int range=RANGE){
@@ -206,7 +206,7 @@ template<class Bus> struct Controller {
       else if(heartbeatAge>500)stop(HEARTBEAT);
       else if(!imuGood)stop(IMU);
       else if(!std::isfinite(tilt)||(!recovery()&&tilt>.349066f))stop(TILT);
-      else if(now-started>(recovery()?14000u:12000u))stop(DURATION);
+      else if(!recovery()&&now-started>12000u)stop(DURATION);
       else {unsigned error=check(now);if(error)stop(error);}
     }
     lastPoll=now;

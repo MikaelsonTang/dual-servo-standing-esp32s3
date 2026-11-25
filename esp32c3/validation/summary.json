@@ -1,16 +1,24 @@
 {
-  "firmware": "HD1910_C3_TEST_V25",
+  "firmware": "HD1910_C3_TEST_V26",
   "compiled": true,
   "hardware_verified": false,
-  "no_connected_usb_c3": true,
-  "native_tests": {
-    "controller_baseline_and_custom_zero": "passed",
-    "stable_capture_and_rejections": "passed",
-    "production_NVS_template_mock_reboot_and_corruption": "passed",
-    "golden_4200_max_error": 9.1702e-05,
-    "random_40000_max_error": 0.000132307
+  "changes": {
+    "current_limit_register": 150,
+    "torque_limit_register": 900,
+    "speed_register": 150,
+    "step_counts_per_20ms": 78,
+    "front_step_counts_per_20ms": 104,
+    "factory_caps_enforced": true,
+    "network_target_gain": 1.5,
+    "front_lower_target_gain": 2.0
   },
-  "desktop_tests": "passed: includes per-device zero, capture confirmation, no implicit motor start, replay snapshots",
-  "hardware_baseline_only": "summary-v24.json; these measurements were obtained on V24, not V25",
-  "pending": "Flash V25 on the user device, save upright zeros, reconnect/reboot to verify, then manually start an assisted trial"
+  "recovery_total_deadline_ms": null,
+  "software_validation": {
+    "active_past_180_seconds": "passed",
+    "manual_stop_and_normal_home": "passed",
+    "trained_angle_limits": "passed",
+    "controller_and_factory_caps": "passed",
+    "per_device_zero_capture_and_storage": "retained"
+  },
+  "pending": "Device flashing, actual parameter readback and assisted physical recovery; no connected USB C3"
 }

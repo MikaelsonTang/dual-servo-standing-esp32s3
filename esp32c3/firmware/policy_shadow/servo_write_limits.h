@@ -3,7 +3,7 @@
 #include "joint_limits.h"
 // One profile for BOTH controller configuration and UART write validation.
 namespace ServoWriteLimits {
-constexpr uint16_t CURRENT=90,TORQUE=600,SPEED=100;
+constexpr uint16_t CURRENT=150,TORQUE=900,SPEED=150;
 inline bool allowed(uint8_t id,uint8_t address,uint16_t value,uint8_t bytes,
                     const ServoRead::State* states,uint32_t now){
   if(id!=1&&id!=2)return false;

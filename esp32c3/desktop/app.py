@@ -200,6 +200,8 @@ class Dashboard:
         self.update_job=self.root.after(30,self.update)
     def draw(self):
         self.limit_label.configure(text=f'上轴 ID1 ±{math.degrees(self.display_limits[1]):.0f}° · 下轴 ID2 ±{math.degrees(self.display_limits[0]):.0f}° / 14 秒')
+        if (self.link and self.link.identity.firmware_name=='HD1910_C3_TEST_V26') or (not self.link and (self.mode!='replay' or getattr(self.replay,'firmware',None)=='HD1910_C3_TEST_V26')):
+            self.limit_label.configure(text=self.limit_label.cget('text').replace('14 秒','无总时限'))
         live=self.mode=='live';fresh=self.row is not None and (not live or time.monotonic()-self.last_received<.6)
         imu_valid=fresh and self.row['quality'] in (1,2) and self.row['age_us']<=30000
         valid=imu_valid and self.row['zero_ready']==1

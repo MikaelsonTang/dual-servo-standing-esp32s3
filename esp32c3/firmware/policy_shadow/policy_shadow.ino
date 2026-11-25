@@ -14,11 +14,12 @@
 #include "startup_zero.h"
 #include "servo_reader.h"
 #include "limited_motion.h"
+#include "recovery_output.h"
 
 // Explicit, bounded motion commands only. START remains computation-only.
-constexpr char FW[]="HD1910_C3_TEST_V25";
+constexpr char FW[]="HD1910_C3_TEST_V26";
 // Bundle identity binds both exported networks, the router and its contract.
-constexpr char MODEL_SHA[]="f731c6ae5f5a458c0a1cff4f99b54111c2db78e5fa4b5572f398dfa834b48509";
+constexpr char MODEL_SHA[]="7096bf83199a2f0db1122eba8f4c6df27a970ec1dadca0fa76eddf704428b4e2";
 constexpr int SDA_PIN=6,SCL_PIN=7;
 AttitudeFilter filter;
 StartupZero zero;
@@ -77,14 +78,14 @@ void banner(){
   Serial.println("# MODEL_FRONT_BACK_SHA256=63b35958ed7652a6f9fc75a3c03a02a08d051322b9752ee5b7850105e6ed22b3");
   Serial.println("# MODEL_SIDE_SHA256=c958db0d1c87dbe3d8e400a1519076494eb930f008d93d7223b22ec358b055ba");
   Serial.println("# FRONT_BACK_ID2_SIGN=-1 OBS_AND_ACTION; DUAL_AND_HOME_UNCHANGED");
-  Serial.println("# RECOVERY_PACING IDS=1,2 STEP=52/20ms LEAD=192counts EACH_JOINT ALL_BRANCHES TRACKING_STOP=512counts");
-  Serial.println("# FRONT_PACING ID2_STEP=68/20ms FRONT_SIGN=1 ACTIVE_ROLL_GT=30deg PITCH_LT=0.20rad LEAD=192counts SPEED_REGISTER=100");
-  Serial.println("# POWER_PROFILE CURRENT_REGISTER=90 TORQUE_REGISTER=600 SPEED_REGISTER=100 FACTORY_CAPS=ENFORCED");
+  Serial.println("# RECOVERY_PACING IDS=1,2 STEP=78/20ms LEAD=192counts EACH_JOINT ALL_BRANCHES TRACKING_STOP=512counts");
+  Serial.println("# FRONT_PACING ID2_STEP=104/20ms FRONT_SIGN=1 ACTIVE_ROLL_GT=30deg PITCH_LT=0.20rad LEAD=192counts SPEED_REGISTER=150");
+  Serial.println("# POWER_PROFILE CURRENT_REGISTER=150 TORQUE_REGISTER=900 SPEED_REGISTER=150 FACTORY_CAPS=ENFORCED");
   Serial.println("# SUBCOUNT ACCUMULATE_BELOW=0.5count CAP=1count CONSUME_ON_GOAL_WRITE RESET_ON_STOP_OR_HOME");
   Serial.printf("# CALIBRATION_SHA256=%s\n",CALIBRATION_SHA256);
   Serial.printf("# IMU_RANGE ACCEL_G=%.0f GYRO_DPS=%.0f SATURATION_FRACTION=%.3f\n",ImuScale::ACCEL_FULL_SCALE_G,ImuScale::GYRO_FULL_SCALE_DPS,ImuScale::SATURATION_FRACTION);
-  Serial.println("# LIMITS START_ZERO=48counts LOCAL=24counts GETUP_COUNTS_ID1=1536 ID2=1080 TARGET_TRAINED_ID1=135deg ID2=95deg STEP=52/20ms GETUP_TIME=14s VOLTAGE=4.0..5.5V HEARTBEAT=500ms; START=observer_only");
-  Serial.println("# AUTO_HOME FALL_SEEN=35deg UPRIGHT=12deg RATE=35dps DWELL=150ms HOME_STEP=9/20ms HOME_LEAD=24counts HOME_TOL=8counts HOLD=500ms TOTAL_TIME=14s THEN_OFF");
+  Serial.println("# LIMITS START_ZERO=48counts LOCAL=24counts GETUP_COUNTS_ID1=1536 ID2=1080 TARGET_TRAINED_ID1=135deg ID2=95deg STEP=78/20ms GETUP_TIME=NONE VOLTAGE=4.0..5.5V HEARTBEAT=500ms; START=observer_only");
+  Serial.println("# AUTO_HOME FALL_SEEN=35deg UPRIGHT=12deg RATE=35dps DWELL=150ms HOME_STEP=9/20ms HOME_LEAD=24counts HOME_TOL=8counts HOLD=500ms TOTAL_TIME=NONE THEN_OFF");
 }
 void commands(){
   static char line[48];static unsigned count=0;static bool overflow=false;
@@ -199,7 +200,12 @@ void controlTick(uint32_t now){
     uint32_t begin=micros();bool valid=direction.step(observation,action,next);inferUs=micros()-begin;
     if(inferUs>=Shadow::PERIOD_US)stopShadow(8);
     else if(!valid)stopShadow(6);
-    else{target[0]=next[0];target[1]=next[1];motion.setForwardPace(direction.state.mode==DIRECTION_FRONT_BACK&&direction.state.sign==1&&roll>.523598776f&&fabsf(pitch)<.20f);if(!diagnosticBench)motion.policy(target[0],target[1]);++policySequence;}
+    else{
+      bool front=direction.state.mode==DIRECTION_FRONT_BACK&&direction.state.sign==1&&roll>.523598776f&&fabsf(pitch)<.20f;
+      if(motion.recovery()&&!diagnosticBench)RecoveryOutput::apply(observation,next,direction.state.mode,front);
+      target[0]=next[0];target[1]=next[1];motion.setForwardPace(front);
+      if(!diagnosticBench)motion.policy(target[0],target[1]);++policySequence;
+    }
   }
   unsigned mode=enabled?1:((reason>=3&&reason!=9)?3:(!ready||!filter.initialized||!zero.ready?2:0));
   auto& s1=servos.states[0];auto& s2=servos.states[1];uint32_t stamp=millis();

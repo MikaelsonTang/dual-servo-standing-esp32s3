@@ -5,12 +5,12 @@ import json
 import math
 from pathlib import Path
 
-FW = 'HD1910_C3_TEST_V25'
+FW = 'HD1910_C3_TEST_V26'
 SUPPORTED_FW = {'HD1910_RECOVERY_V8':250, 'HD1910_RECOVERY_V9':2000, 'HD1910_RECOVERY_V10':2000, 'HD1910_RECOVERY_V11':2000, 'HD1910_RECOVERY_V12':2000, 'HD1910_RECOVERY_V13':2000}
 NEW_MODEL_FW = {'HD1910_RECOVERY_V10','HD1910_RECOVERY_V11','HD1910_RECOVERY_V12','HD1910_RECOVERY_V13'}
 HOME_FW = {'HD1910_RECOVERY_V12','HD1910_RECOVERY_V13'}
-DIRECTIONAL_FW = {'HD1910_RECOVERY_V14','HD1910_RECOVERY_V15','HD1910_RECOVERY_V16','HD1910_RECOVERY_V17','HD1910_RECOVERY_V18','HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25'}
-REVERSED_FW = {'HD1910_RECOVERY_V15','HD1910_RECOVERY_V16','HD1910_RECOVERY_V17','HD1910_RECOVERY_V18','HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25'}
+DIRECTIONAL_FW = {'HD1910_RECOVERY_V14','HD1910_RECOVERY_V15','HD1910_RECOVERY_V16','HD1910_RECOVERY_V17','HD1910_RECOVERY_V18','HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25','HD1910_C3_TEST_V26'}
+REVERSED_FW = {'HD1910_RECOVERY_V15','HD1910_RECOVERY_V16','HD1910_RECOVERY_V17','HD1910_RECOVERY_V18','HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25','HD1910_C3_TEST_V26'}
 SUPPORTED_FW.update({name:2000 for name in DIRECTIONAL_FW})
 NEW_MODEL_FW.update(DIRECTIONAL_FW)
 HOME_FW.update(DIRECTIONAL_FW)
@@ -35,33 +35,39 @@ MODELS['HD1910_C3_TEST_V23']='853d25cacdaf2e8fe011563d9350fbc3ba93be257f02749f3f
 MODELS['HD1910_C3_TEST_V24']='941a19dc513c485d91ecf97d6e4a2e75412a43dab0471ea062c2a27daa52e95a'
 
 MODELS['HD1910_C3_TEST_V25']='f731c6ae5f5a458c0a1cff4f99b54111c2db78e5fa4b5572f398dfa834b48509'
-DYNAMIC_ZERO_FW={'HD1910_C3_TEST_V25'}
+DYNAMIC_ZERO_FW={'HD1910_C3_TEST_V25','HD1910_C3_TEST_V26'}
+
+MODELS['HD1910_C3_TEST_V26']='7096bf83199a2f0db1122eba8f4c6df27a970ec1dadca0fa76eddf704428b4e2'
 
 def row_joint_zeros(row):
     return {i:int(row.get(f'joint_zero{i}',JOINT_ZEROS[i])) for i in (1,2)}
 
 def target_limits(firmware):
-    degrees=(95,135) if firmware in ('HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25') else (90,130) if firmware in NEW_MODEL_FW else (120,120) if firmware in SUPPORTED_FW else (90,90)
+    degrees=(95,135) if firmware in ('HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25','HD1910_C3_TEST_V26') else (90,130) if firmware in NEW_MODEL_FW else (120,120) if firmware in SUPPORTED_FW else (90,90)
     return tuple(math.radians(v) for v in degrees)
-def joint_ranges(firmware):return JOINT_RANGE if firmware in ('HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25') else {1:1479,2:1024} if firmware in NEW_MODEL_FW else {1:1365,2:1365}
+def joint_ranges(firmware):return JOINT_RANGE if firmware in ('HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25','HD1910_C3_TEST_V26') else {1:1479,2:1024} if firmware in NEW_MODEL_FW else {1:1365,2:1365}
 def startup_tolerance(firmware=FW):return 48 if firmware=='HD1910_RECOVERY_V11' or firmware in HOME_FW else 24
 
 def home_settings(firmware=FW):
     if firmware not in HOME_FW:return None
     return {'upright_deg':12,'rate_dps':35,'verify_ms':150,
             'step_counts':6 if firmware=='HD1910_RECOVERY_V12' else 9,'period_ms':20,
-            'lead_counts':24,'tolerance_counts':8,'hold_ms':500,'total_deadline_ms':14000,
+            'lead_counts':24,'tolerance_counts':8,'hold_ms':500,'total_deadline_ms':None if firmware=='HD1910_C3_TEST_V26' else 14000,
             'finish':'torque_off_confirmed'}
 def recovery_pacing(firmware=FW):
-    if firmware in ('HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25'):
+    if firmware=='HD1910_C3_TEST_V26':
+        result=recovery_pacing('HD1910_C3_TEST_V25')
+        result.update(front_back_id2_step_counts=78,dual_step_counts=78,front_accelerated_id2_step_counts=104,speed_register=150,current_limit_register=150,torque_limit_register=900,network_target_gain=1.5,front_lower_target_gain=2.0)
+        return result
+    if firmware in ('HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25','HD1910_C3_TEST_V26'):
         result=recovery_pacing('HD1910_C3_TEST_V22')
         result.update(front_back_id2_step_counts=52,dual_step_counts=52,front_accelerated_id2_step_counts=68,speed_register=100,current_limit_register=90,torque_limit_register=600,factory_caps_enforced=True)
         return result
-    if firmware in ('HD1910_RECOVERY_V17','HD1910_RECOVERY_V18','HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25'):
+    if firmware in ('HD1910_RECOVERY_V17','HD1910_RECOVERY_V18','HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25','HD1910_C3_TEST_V26'):
         return {'front_back_id2_step_counts':26,'period_ms':20,'front_back_id2_lead_counts':192,
                 'dual_step_counts':26,'dual_lead_counts':192,'paced_ids':[1,2],
                 'scope':'each_joint_all_network_branches','tracking_stop_counts':512,
-                'subcount_accumulator':({'below_counts':0.5,'cap_counts':1,'consume':'successful_goal_write','reset':'stop_start_or_home'} if firmware in ('HD1910_RECOVERY_V18','HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25') else None)}
+                'subcount_accumulator':({'below_counts':0.5,'cap_counts':1,'consume':'successful_goal_write','reset':'stop_start_or_home'} if firmware in ('HD1910_RECOVERY_V18','HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25','HD1910_C3_TEST_V26') else None)}
     return {'front_back_id2_step_counts':26 if firmware=='HD1910_RECOVERY_V16' else 52,
             'period_ms':20,'front_back_id2_lead_counts':192 if firmware=='HD1910_RECOVERY_V16' else None,
             'dual_step_counts':52,'tracking_stop_counts':512}
@@ -171,7 +177,7 @@ class Recorder:
         self.csv_file=self.base.with_suffix('.csv').open('x',encoding='utf-8-sig',newline='')
         self.writer=csv.DictWriter(self.csv_file,fieldnames=['host_utc',*FIELDS]);self.writer.writeheader()
         self.count=0;self.source=source;self.closed=False;self.motion_seen=False
-        self.raw.write(json.dumps({'type':'session','source':source,'started_utc':self.started,'firmware':firmware,'imu_gyro_range_dps':SUPPORTED_FW[firmware],'imu_accel_range_g':2,'model_sha256':MODELS[firmware],'direction_models':({'front_back':('63b35958ed7652a6f9fc75a3c03a02a08d051322b9752ee5b7850105e6ed22b3' if firmware in ('HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25') else FRONT_BACK_MODEL),'side':('c958db0d1c87dbe3d8e400a1519076494eb930f008d93d7223b22ec358b055ba' if firmware in ('HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25') else MODEL),'bundle':MODELS[firmware]} if firmware in DIRECTIONAL_FW else None),'calibration_sha256':CAL,'front_back_ID2_joint_sign':(-1 if firmware in REVERSED_FW else 1),'recovery_pacing':recovery_pacing(firmware),'angle_reference':'per-boot stationary average; raw fusion quaternion and reference quaternion recorded separately','servo_output_capability':'explicit_assisted_recovery','joint_zeros':None if firmware in DYNAMIC_ZERO_FW else JOINT_ZEROS,'joint_zero_mode':'per-frame, device NVS' if firmware in DYNAMIC_ZERO_FW else 'legacy fixed','joint_range_counts':joint_ranges(firmware),'target_limits_rad':target_limits(firmware),'local_range_counts':LOCAL_RANGE,'startup_tolerance_counts':startup_tolerance(firmware),'local_capture_range_counts':startup_tolerance(firmware),'voltage_limits_v':[4.0,5.5],'automatic_return_to_zero':firmware in HOME_FW,'auto_home_settings':home_settings(firmware),'full_motion_validation':'not_completed; remaining individual physical tests skipped at user request'},ensure_ascii=False)+'\n')
+        self.raw.write(json.dumps({'type':'session','source':source,'started_utc':self.started,'firmware':firmware,'imu_gyro_range_dps':SUPPORTED_FW[firmware],'imu_accel_range_g':2,'model_sha256':MODELS[firmware],'direction_models':({'front_back':('63b35958ed7652a6f9fc75a3c03a02a08d051322b9752ee5b7850105e6ed22b3' if firmware in ('HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25','HD1910_C3_TEST_V26') else FRONT_BACK_MODEL),'side':('c958db0d1c87dbe3d8e400a1519076494eb930f008d93d7223b22ec358b055ba' if firmware in ('HD1910_RECOVERY_V19','HD1910_RECOVERY_V20','HD1910_C3_TEST_V21','HD1910_C3_TEST_V22','HD1910_C3_TEST_V23','HD1910_C3_TEST_V24','HD1910_C3_TEST_V25','HD1910_C3_TEST_V26') else MODEL),'bundle':MODELS[firmware]} if firmware in DIRECTIONAL_FW else None),'calibration_sha256':CAL,'front_back_ID2_joint_sign':(-1 if firmware in REVERSED_FW else 1),'recovery_pacing':recovery_pacing(firmware),'angle_reference':'per-boot stationary average; raw fusion quaternion and reference quaternion recorded separately','servo_output_capability':'explicit_assisted_recovery','joint_zeros':None if firmware in DYNAMIC_ZERO_FW else JOINT_ZEROS,'joint_zero_mode':'per-frame, device NVS' if firmware in DYNAMIC_ZERO_FW else 'legacy fixed','joint_range_counts':joint_ranges(firmware),'target_limits_rad':target_limits(firmware),'local_range_counts':LOCAL_RANGE,'startup_tolerance_counts':startup_tolerance(firmware),'local_capture_range_counts':startup_tolerance(firmware),'voltage_limits_v':[4.0,5.5],'automatic_return_to_zero':firmware in HOME_FW,'auto_home_settings':home_settings(firmware),'full_motion_validation':'not_completed; remaining individual physical tests skipped at user request'},ensure_ascii=False)+'\n')
     def append(self,line,row=None):
         stamp=datetime.now(timezone.utc).isoformat()
         item={'host_utc':stamp,'raw':line}

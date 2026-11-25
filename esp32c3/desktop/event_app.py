@@ -69,7 +69,7 @@ class EventDashboard(original.Dashboard):
         # Keep the proven transport, heartbeat, validation, STOP and recording paths.
         super().__init__(root)
         for child in root.winfo_children():child.pack_forget()
-        root.title('HD1910 · C3 完整测试 · V25');root.geometry('1120x880');root.minsize(1000,820);root.configure(bg=BG)
+        root.title('HD1910 · C3 完整测试 · V26');root.geometry('1120x880');root.minsize(1000,820);root.configure(bg=BG)
         root.option_add('*Font',(FONT,10))
         header=tk.Frame(root,bg=BG);header.pack(fill='x',padx=32,pady=(24,18))
         brand=tk.Frame(header,bg=BG);brand.pack(side='left')
@@ -184,7 +184,7 @@ class EventDashboard(original.Dashboard):
                 label.configure(text=f'编码器 {int(self.row[f"s{ident}_position"])} · 未设关节零位\n{self.row[f"s{ident}_voltage"]:.1f} V · '+('已卸力' if self.row[f's{ident}_torque']==0 else '扭矩已开启'))
             self.values['lower_target'].configure(text='—');self.values['upper_target'].configure(text='—')
             self.motion_label.configure(text='请把两轴摆成真实直立，点击“保存当前直立关节零位”；无需凑旧设备的编码器数值',fg=MUTED)
-        self.footer.configure(text=('V25 · 模型推理 '+f'{self.last_infer/1000:.2f} ms'+' · 记录 '+str(self.recorder.count)+' 条' if self.recorder else '手动启动  /  站稳回零  /  自动保存实验记录'))
+        self.footer.configure(text=('V26 · 模型推理 '+f'{self.last_infer/1000:.2f} ms'+' · 记录 '+str(self.recorder.count)+' 条' if self.recorder else '手动启动  /  站稳回零  /  自动保存实验记录'))
 
 
 def main():

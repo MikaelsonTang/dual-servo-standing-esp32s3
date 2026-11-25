@@ -1,6 +1,6 @@
 {
-  "firmware": "HD1910_C3_TEST_V25",
-  "runtime_sha256": "f731c6ae5f5a458c0a1cff4f99b54111c2db78e5fa4b5572f398dfa834b48509",
+  "firmware": "HD1910_C3_TEST_V26",
+  "runtime_sha256": "7096bf83199a2f0db1122eba8f4c6df27a970ec1dadca0fa76eddf704428b4e2",
   "source_files": {
     "dense_q15.h": "eb2beb524302cfdfc200f6a62d701abe8a59cd0d8b7be419f87efbd9adb48bbb",
     "directional_policy.h": "26cf8d8223ebbd12c9040b4122553b60ae99fa2204b3bde92f1904d953e8f477",
@@ -8,10 +8,11 @@
     "joint_limits.h": "bab7510eb295ed23943baed1fcba377d6215b07c1fd53f55c300607afe2e2d6e",
     "joint_zero_capture.h": "5c858314d4ebd30e058c1737e2bc3cbbf6ff9d228743f4bdd81c89164730b402",
     "joint_zero_storage.h": "90cf241f47ff576f9f8a18dd65cc2c3c7dcd48a330aa46049b315664949fe5b0",
-    "limited_motion.h": "2df90ad2b93dab7229f486094b565945d228b24741f0ea00bf5ad4a058d168b6",
+    "limited_motion.h": "abc414fd1d371bd55ecba1b64ffdd603282096773a720360df762b01388cab6a",
     "policy_networks.h": "f0b604be637b1dcffd7415884b135944264cfd5175dda23befafb1b3df274a33",
+    "recovery_output.h": "c9f07f649e29d7cb0139c4511df8c21515c3374fc8ec1f0f3b30bcfdd0b80712",
     "servo_reader.h": "fd9bda09392f629e3a9a623e263a50a94397783b90e5c9c94b7c88202bb2115c",
-    "servo_write_limits.h": "93ff77b6dc0bf92818578f9b7a2cd28e36ba73f37de48cd9c5be6bcee845131c",
+    "servo_write_limits.h": "0e461d0f2f5c2eed6523dec0603d87def1d2a25597bf96ac909922a062bcf693",
     "shadow_core.h": "8b937543af13863ed07db5b2a73f6963c7257d528c4e202ae79f9ead2e9e0c03",
     "startup_zero.h": "063fc5ee3bb65690754088efcad6f8f1a6246bc293e43143441c16a5e599ee61"
   }

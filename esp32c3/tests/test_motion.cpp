@@ -76,11 +76,11 @@ int main(){
   {Rig r;r.run(Motion::RECOVERY);r.c.policy(-1.5707963f,1.5707963f);r.step(2000);
     assert(r.c.phase==2&&r.c.command[0]==Motion::ZERO[0]-1024&&r.c.command[1]==Motion::ZERO[1]+1024);
     int last[2]={Motion::ZERO[0],Motion::ZERO[1]};bool negative=false;
-    for(auto w:r.bus.writes)if(w.addr==42){int v=w.value&0x8000?-(w.value&0x7fff):w.value;negative|=v<0;assert(std::abs(v-last[w.id-1])<=52);last[w.id-1]=v;}
+    for(auto w:r.bus.writes)if(w.addr==42){int v=w.value&0x8000?-(w.value&0x7fff):w.value;negative|=v<0;assert(std::abs(v-last[w.id-1])<=78);last[w.id-1]=v;}
     assert(negative);r.c.stop(Motion::HOST_STOP);auto count=r.bus.writes.size();r.off();for(size_t i=count;i<r.bus.writes.size();++i)assert(r.bus.writes[i].addr==40);}
   {Rig r;r.bus.states[0].eepromLock=0;assert(!r.c.start(Motion::RECOVERY,r.now,true,1.57f,0));assert(r.c.reason==Motion::CONFIG);}
   {Rig r;r.bus.ignoreConfig=true;assert(r.c.start(Motion::RECOVERY,r.now,true,1.57f,0));r.step(700);assert(!r.c.engaged()&&r.c.reason==Motion::CONFIG);for(auto w:r.bus.writes)assert(w.addr!=42);r.off();}
-  {Rig r;assert(r.c.start(Motion::RECOVERY,r.now,true,1.57f,0));r.step(500,0,true,1.57f);assert(r.c.phase==2);r.step(14001,0,true,1.57f);assert(r.c.reason==Motion::DURATION);r.off();}
+  {Rig r;assert(r.c.start(Motion::RECOVERY,r.now,true,1.57f,0));r.step(500,0,true,1.57f);assert(r.c.phase==2);r.step(120000,0,true,1.57f);assert(r.c.phase==2);r.c.stop(Motion::HOST_STOP);r.off();}
   {Rig r;r.run(Motion::RECOVERY);r.bus.physical[0].position=Motion::ZERO[0]+Motion::RECOVERY_RANGE[0]+58;r.step(50);assert(r.c.reason==Motion::BOUNDS);r.off();}
   {Rig r;r.run(Motion::RECOVERY);r.c.policy(-10.f,10.f);r.step(2000);assert(r.c.command[0]==-1199&&r.c.command[1]==3952);assert(r.c.phase==2);r.c.stop(Motion::HOST_STOP);r.off();}
   {Rig r;r.run(Motion::RECOVERY);r.c.policy(10.f,-10.f);r.step(2000);
@@ -167,8 +167,8 @@ int main(){
     if(fault==3)r.step(1,0,true,.4f);
     if(fault==4){r.bus.physical[1].voltage=39;r.step(50);}
     if(fault==5){r.bus.freeze=true;r.step(100);r.bus.freeze=false;}
-    if(fault==6){r.c.started=r.now-14001;r.step(1);}
-    const unsigned expected[]={Motion::HOST_STOP,Motion::HEARTBEAT,Motion::IMU,Motion::TILT,Motion::ELECTRICAL,Motion::FEEDBACK,Motion::DURATION};
+    if(fault==6){r.c.stop(Motion::HOST_STOP);r.step(1);}
+    const unsigned expected[]={Motion::HOST_STOP,Motion::HEARTBEAT,Motion::IMU,Motion::TILT,Motion::ELECTRICAL,Motion::FEEDBACK,Motion::HOST_STOP};
     assert(!r.c.engaged()&&r.c.reason==expected[fault]);auto n=r.bus.writes.size();r.off();
     for(size_t j=n;j<r.bus.writes.size();++j)assert(r.bus.writes[j].addr==40);
   }
@@ -188,7 +188,7 @@ int main(){
     assert(r.bus.states[axis].position==r.c.command[axis]);
     for(size_t j=n;j<r.bus.writes.size();++j){auto w=r.bus.writes[j];if(w.id!=axis+1||w.addr!=42)continue;
       int value=w.value&0x8000?-int(w.value&0x7fff):int(w.value);
-      assert(std::abs(value-prior)<=52&&std::abs(value-w.observed)<=192);
+      assert(std::abs(value-prior)<=78&&std::abs(value-w.observed)<=192);
       if(at)assert(w.time-at>=20);at=w.time;prior=value;
     }
     assert(at);r.c.stop(Motion::HOST_STOP);r.off();++pacedCases;
@@ -211,7 +211,7 @@ int main(){
     Rig r;r.run(Motion::RECOVERY);r.bus.stall=true;
     r.c.policy(axis==1?1.5f:0,axis==0?1.5f:0);r.step(500);
     int held=r.c.command[axis];r.c.policy(axis==1?-1.5f:0,axis==0?-1.5f:0);r.step(10);
-    assert(r.c.command[axis]>held&&r.c.command[axis]-held<=52&&r.c.phase==2);++pacedCases;
+    assert(r.c.command[axis]>held&&r.c.command[axis]-held<=78&&r.c.phase==2);++pacedCases;
   }
   // An external displacement can exceed the lead bound. Corrective steps may
   // reduce that lag, while target progression cannot increase it further.
@@ -219,7 +219,7 @@ int main(){
     Rig r;r.run(Motion::RECOVERY);r.bus.stall=true;
     r.bus.physical[axis].position=r.c.command[axis]+250;r.step(40);
     int held=r.c.command[axis];r.c.policy(axis==1?-1.5f:0,axis==0?-1.5f:0);r.step(10);
-    assert(r.c.command[axis]>held&&r.c.command[axis]-held<=52&&r.c.phase==2);++pacedCases;
+    assert(r.c.command[axis]>held&&r.c.command[axis]-held<=78&&r.c.phase==2);++pacedCases;
   }
   // A caller cannot bypass either joint's lead bound through the write API.
   for(int axis=0;axis<2;++axis){
@@ -236,7 +236,7 @@ int main(){
     r.c.policy(1.5f,2.f);auto n=r.bus.writes.size();r.step(200);
     for(size_t j=n;j<r.bus.writes.size();++j){auto w=r.bus.writes[j];if(w.addr!=42)continue;
       int i=w.id-1,value=w.value&0x8000?-int(w.value&0x7fff):int(w.value);
-      assert(std::abs(before[i]-value)<=52&&std::abs(value-w.observed)<=192);saw[i]=true;before[i]=value;
+      assert(std::abs(before[i]-value)<=78&&std::abs(value-w.observed)<=192);saw[i]=true;before[i]=value;
     }
     assert(saw[0]&&saw[1]&&r.c.phase==2);++pacedCases;
   }
@@ -247,12 +247,12 @@ int main(){
     if(fault==0)r.c.stop(Motion::HOST_STOP);
     if(fault==1)r.step(1,501);
     if(fault==2){r.bus.freeze=true;r.step(100);r.bus.freeze=false;}
-    if(fault==3){r.c.started=r.now-14001;r.step(1);}
+    if(fault==3){r.c.stop(Motion::HOST_STOP);r.step(1);}
     if(fault==4){r.bus.physical[axis].voltage=39;r.step(50);}
     if(fault==5){r.bus.physical[axis].position=r.c.command[axis]+520;r.step(50);}
     if(fault==6)r.step(1,0,false);
     if(fault==7){r.now+=50;r.step(1);}
-    const unsigned expected[]={Motion::HOST_STOP,Motion::HEARTBEAT,Motion::FEEDBACK,Motion::DURATION,Motion::ELECTRICAL,Motion::TRACKING,Motion::IMU,Motion::LOOP};
+    const unsigned expected[]={Motion::HOST_STOP,Motion::HEARTBEAT,Motion::FEEDBACK,Motion::HOST_STOP,Motion::ELECTRICAL,Motion::TRACKING,Motion::IMU,Motion::LOOP};
     assert(!r.c.engaged()&&r.c.reason==expected[fault]);auto n=r.bus.writes.size();r.off();
     for(size_t j=n;j<r.bus.writes.size();++j)assert(r.bus.writes[j].addr==40);
     ++pacedCases;
