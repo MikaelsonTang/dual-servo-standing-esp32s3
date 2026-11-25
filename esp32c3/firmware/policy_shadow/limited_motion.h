@@ -17,7 +17,7 @@ constexpr float COUNTS_PER_RAD=4096.f/6.283185307179586f;
 enum Kind { HOLD=1,UPPER=2,LOWER=3,POLICY=4,RECOVERY=5 };
 enum Reason { NONE=0,HOST_STOP=1,HEARTBEAT=2,IMU=3,FEEDBACK=4,ELECTRICAL=5,
   BOUNDS=6,TRACKING=7,LIMITS=8,WRITE=9,DURATION=10,PREFLIGHT=11,COMPLETE=12,
-  LOOP=13,ZERO_MISMATCH=14,TILT=15,TORQUE=16,NUMERIC=17,CONFIG=18,HOME_COMPLETE=19 };
+  LOOP=13,ZERO_MISMATCH=14,TILT=15,TORQUE=16,NUMERIC=17,CONFIG=18,HOME_COMPLETE=19,ZERO_UNSET=20 };
 enum RecoveryStage { NO_RECOVERY=0,NETWORK=1,VERIFY_UPRIGHT=2,RETURN_ZERO=3,ZERO_HOLD=4 };
 constexpr float UPRIGHT_TILT=.20943951f, HOME_ABORT_TILT=.34906585f; // 12 / 20 degrees
 constexpr float UPRIGHT_RATE_DPS=35.f;
@@ -102,6 +102,7 @@ template<class Bus> struct Controller {
   }
   bool start(unsigned requested,uint32_t now,bool imuGood,float tilt,uint32_t heartbeatAge){
     if(phase!=0||!offConfirmed||bus.pending||requested<HOLD||requested>RECOVERY)return false;
+    if(!JointLimits::calibrated){reason=ZERO_UNSET;return false;}
     kind=requested;
     unsigned failure=check(now,true);
     if(!imuGood)failure=IMU;

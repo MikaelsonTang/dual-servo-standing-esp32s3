@@ -1,7 +1,7 @@
 @echo off
 if not defined VCVARS64 (
-  echo Set VCVARS64 to your Visual Studio vcvars64.bat path before running native tests.
-  exit /b 1
+ echo Set VCVARS64 to your Visual Studio vcvars64.bat path.
+ exit /b 1
 )
 call "%VCVARS64%" >nul
 cd /d "%~dp0"

@@ -1,4 +1,4 @@
-# ESP32-C3 V24 第三方来源与分发说明
+# ESP32-C3 第三方来源与分发说明
 
 `firmware/policy_shadow/src/bosch/` contains Bosch BMI270 SensorAPI source and its BSD-3-Clause LICENSE. Original source headers and license are preserved.
 

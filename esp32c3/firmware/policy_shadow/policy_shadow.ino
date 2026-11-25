@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include <Preferences.h>
+#include "joint_zero_capture.h"
+#include "joint_zero_storage.h"
 #include <math.h>
 #include "src/bosch/bmi270.h"
 #include "attitude_filter.h"
@@ -13,15 +16,16 @@
 #include "limited_motion.h"
 
 // Explicit, bounded motion commands only. START remains computation-only.
-constexpr char FW[]="HD1910_C3_TEST_V24";
+constexpr char FW[]="HD1910_C3_TEST_V25";
 // Bundle identity binds both exported networks, the router and its contract.
-constexpr char MODEL_SHA[]="941a19dc513c485d91ecf97d6e4a2e75412a43dab0471ea062c2a27daa52e95a";
+constexpr char MODEL_SHA[]="f731c6ae5f5a458c0a1cff4f99b54111c2db78e5fa4b5572f398dfa834b48509";
 constexpr int SDA_PIN=6,SCL_PIN=7;
 AttitudeFilter filter;
 StartupZero zero;
 ServoReader servos;
 Motion::Controller<ServoReader> motion(servos);
 DirectionController direction;
+JointZeroCapture jointCapture;
 unsigned requestedMotion=0;
 bool configurationCheck=false;
 uint32_t motionRequestAt=0;
@@ -42,6 +46,17 @@ bool bootCheckDone=false; float bootNumericError=0; unsigned bootMismatches=0; u
 void stopShadow(unsigned why){
   enabled=false;diagnosticBench=false;reason=why;action[0]=action[1]=0;
   if(motion.engaged())motion.stop(why==1?Motion::HOST_STOP:why==7?Motion::HEARTBEAT:why==8?Motion::LOOP:why==6?Motion::NUMERIC:Motion::IMU);
+}
+void syncJointZeroTargets(){
+  for(int i=0;i<2;++i)motion.command[i]=motion.desired[i]=JointLimits::ZERO[i];
+  motion.clearSubcount();target[0]=target[1]=before[0]=before[1]=action[0]=action[1]=0;direction.reset();
+}
+void loadJointZero(){
+  JointZeroStorage::load<Preferences>();
+  syncJointZeroTargets();
+}
+bool persistJointZero(int upper,int lower){
+  return JointZeroStorage::persist<Preferences>(upper,lower);
 }
 bool motionImu(float& tilt){
   float relative[4],r=0,p=0;bool singular=false;
@@ -81,35 +96,41 @@ void commands(){
     if(!overflow){
       if(!strcmp(line,"HEARTBEAT"))lastHeartbeat=millis();
       else if(!strcmp(line,"STATUS"))banner();
+      else if(!strcmp(line,"JOINTZERO")){
+        float tilt=0;bool level=motionImu(tilt)&&tilt<.174533f&&AttitudeFilter::norm3(wDps)<1.f;
+        if(motion.phase==0&&motion.offConfirmed&&!requestedMotion&&level&&!jointCapture.active()){
+          stopShadow(1);jointCapture.request(millis(),true);Serial.println("# ACK JOINTZERO keep_base_level_and_joints_upright_still");
+        }else Serial.println("# REJECT JOINTZERO requires_level_still_torque_off");
+      }
       else if(!strcmp(line,"RAMCHECK")){
-        if(motion.phase==0&&motion.offConfirmed&&!diagnosticBench){
+        if(motion.phase==0&&motion.offConfirmed&&!diagnosticBench&&!jointCapture.active()){
           stopShadow(1);configurationCheck=true;requestedMotion=Motion::RECOVERY;motionRequestAt=millis();
           Serial.println("# RAMCHECK configuring_and_reading_back NO_GOAL_WRITES");
         }else Serial.println("# REJECT RAMCHECK not_off");
       }
-      else if(!strcmp(line,"STOP")||!strcmp(line,"PAUSE")){configurationCheck=false;requestedMotion=0;stopShadow(1);motion.stop(Motion::HOST_STOP);Serial.println("# ACK STOP requested; wait for motion_off=1");}
+      else if(!strcmp(line,"STOP")||!strcmp(line,"PAUSE")){configurationCheck=false;if(jointCapture.active())jointCapture.fail(1);requestedMotion=0;stopShadow(1);motion.stop(Motion::HOST_STOP);Serial.println("# ACK STOP requested; wait for motion_off=1");}
       else if(!strcmp(line,"HOLD")||!strcmp(line,"TEST1")||!strcmp(line,"TEST2")||!strcmp(line,"POLICY")||!strcmp(line,"GETUP")){
-        if(motion.phase==0&&motion.offConfirmed&&!diagnosticBench){
+        if(motion.phase==0&&motion.offConfirmed&&!diagnosticBench&&!jointCapture.active()){
           stopShadow(1);requestedMotion=!strcmp(line,"HOLD")?Motion::HOLD:!strcmp(line,"TEST1")?Motion::UPPER:!strcmp(line,"TEST2")?Motion::LOWER:!strcmp(line,"GETUP")?Motion::RECOVERY:Motion::POLICY;
           motionRequestAt=millis();Serial.println("# MOTION_REQUEST pending_preflight");
         }else Serial.println("# REJECT MOTION not_off");
       }
       else if(!strcmp(line,"ZERO")){requestedMotion=0;stopShadow(1);target[0]=target[1]=0;Serial.println("# ACK ZERO virtual_targets_only");}
-      else if(!strcmp(line,"CAL")){requestedMotion=0;stopShadow(9);zero.request();Serial.println("# ACK CAL keep_base_level_and_still");}
+      else if(!strcmp(line,"CAL")){if(jointCapture.active())jointCapture.fail(1);requestedMotion=0;stopShadow(9);zero.request();Serial.println("# ACK CAL keep_base_level_and_still");}
       else if(!strcmp(line,"IMURESET")){
-        if(motion.phase==0&&motion.offConfirmed){
+        if(motion.phase==0&&motion.offConfirmed&&!jointCapture.active()){
           requestedMotion=0;stopShadow(4);haveSample=false;filter=AttitudeFilter();
           Wire.end();initImu();lastTick=0;nextTick=micros()+Shadow::PERIOD_US;
           Serial.println(ready?"# ACK IMURESET preserved_zero; keep_still_then_start_manually":"# REJECT IMURESET sensor_not_found");
         }else Serial.println("# REJECT IMURESET wait_for_torque_off");
       }
       else if(!strcmp(line,"BENCH")){
-        if(motion.phase==0&&motion.offConfirmed&&!requestedMotion&&numericOk&&ready&&zero.ready&&haveSample&&filter.initialized&&(filter.quality==1||filter.quality==2)&&Shadow::fresh(micros(),lastSampleUs)){
+        if(motion.phase==0&&motion.offConfirmed&&!requestedMotion&&!jointCapture.active()&&numericOk&&ready&&zero.ready&&haveSample&&filter.initialized&&(filter.quality==1||filter.quality==2)&&Shadow::fresh(micros(),lastSampleUs)){
           direction.reset();benchStep=0;diagnosticBench=true;enabled=true;reason=0;lastHeartbeat=millis();Serial.println("# ACK BENCH synthetic_observations NO_GOAL_WRITES");
         }else Serial.println("# REJECT BENCH not_ready_or_not_off");
       }
       else if(!strcmp(line,"START")){
-        if(motion.phase==0&&!requestedMotion&&numericOk&&ready&&zero.ready&&haveSample&&filter.initialized&&(filter.quality==1||filter.quality==2)&&Shadow::fresh(micros(),lastSampleUs)){
+        if(motion.phase==0&&!requestedMotion&&!jointCapture.active()&&numericOk&&ready&&zero.ready&&haveSample&&filter.initialized&&(filter.quality==1||filter.quality==2)&&Shadow::fresh(micros(),lastSampleUs)){
           direction.reset();diagnosticBench=false;enabled=true;reason=0;lastHeartbeat=millis();Serial.println("# ACK START");
         }else Serial.println("# REJECT START IMU_NOT_READY");
       }else Serial.println("# REJECT UNKNOWN_COMMAND");
@@ -196,6 +217,9 @@ void controlTick(uint32_t now){
     n-=1; // append motion state to the same atomic telemetry row
     n+=snprintf(out+n,sizeof(out)-n,",%u,%u,%u,%u,%d,%d,%u,%u,%u,%u,%u,%u,%d,%d,%d,%d,%d,%lu\n",motion.phase,motion.kind,motion.reason,unsigned(motion.offConfirmed),motion.command[0],motion.command[1],s1.currentLimit,s1.torqueLimit,s2.currentLimit,s2.torqueLimit,motion.recoveryStage,motion.faultId,motion.faultActual,motion.faultTarget,direction.state.mode,direction.state.sign,direction.state.stable,(unsigned long)direction.state.elapsed);
   }
+  if(n>0&&n<int(sizeof(out))){
+    --n;n+=snprintf(out+n,sizeof(out)-n,",%d,%d,%u,%u,%u\n",JointLimits::ZERO[0],JointLimits::ZERO[1],unsigned(JointLimits::calibrated),jointCapture.state,jointCapture.error);
+  }
   if(n>0&&n<int(sizeof(out))&&Serial.availableForWrite()>=n)Serial.write((const uint8_t*)out,n);else ++skipped;
   loopMaxUs=0;
 }
@@ -205,7 +229,7 @@ void serviceSelftest(){
   servos.poll();motion.tick(millis(),false,0,0);delay(1);
 }
 void setup(){
-  Serial.setTxBufferSize(8192);Serial.begin(230400);delay(1500);banner();
+  Serial.setTxBufferSize(8192);Serial.begin(230400);delay(1500);loadJointZero();banner();
   servos.begin();Serial.println("# SERVO_LIMITED boot_stop TX4 RX5 BAUD1000000 IDS1,2; RAM limits remain reduced after stop");
   serviceSelftest();
   initImu();
@@ -231,7 +255,7 @@ void setup(){
   }
   bootBenchOk=bootBenchUs<14000;numericOk=numericOk&&bootBenchOk;
   bootCheckDone=true;
-  Serial.println("ms,tick,imu_seq,policy_seq,mode,reason,quality,age_us,period_us,late_us,loop_max_us,imu_us,infer_us,roll_rad,pitch_rad,lower_before,upper_before,action_lower,action_upper,lower_target,upper_target,acc_norm,acc_weight,faults,saturations,missed,dropped,singular,qw,qx,qy,qz,ax_g,ay_g,az_g,gx_dps,gy_dps,gz_dps,raw_roll_rad,raw_pitch_rad,ref_qw,ref_qx,ref_qy,ref_qz,zero_ready,zero_seq,zero_samples,s1_state,s1_position,s1_voltage,s1_temperature,s1_torque,s1_status,s1_age_ms,s1_error,s2_state,s2_position,s2_voltage,s2_temperature,s2_torque,s2_status,s2_age_ms,s2_error,motion_phase,motion_kind,motion_reason,motion_off,motion_cmd1,motion_cmd2,s1_current_limit,s1_torque_limit,s2_current_limit,s2_torque_limit,recovery_stage,motion_fault_id,motion_fault_actual,motion_fault_target,direction_mode,direction_sign,direction_stable,direction_elapsed");
+  Serial.println("ms,tick,imu_seq,policy_seq,mode,reason,quality,age_us,period_us,late_us,loop_max_us,imu_us,infer_us,roll_rad,pitch_rad,lower_before,upper_before,action_lower,action_upper,lower_target,upper_target,acc_norm,acc_weight,faults,saturations,missed,dropped,singular,qw,qx,qy,qz,ax_g,ay_g,az_g,gx_dps,gy_dps,gz_dps,raw_roll_rad,raw_pitch_rad,ref_qw,ref_qx,ref_qy,ref_qz,zero_ready,zero_seq,zero_samples,s1_state,s1_position,s1_voltage,s1_temperature,s1_torque,s1_status,s1_age_ms,s1_error,s2_state,s2_position,s2_voltage,s2_temperature,s2_torque,s2_status,s2_age_ms,s2_error,motion_phase,motion_kind,motion_reason,motion_off,motion_cmd1,motion_cmd2,s1_current_limit,s1_torque_limit,s2_current_limit,s2_torque_limit,recovery_stage,motion_fault_id,motion_fault_actual,motion_fault_target,direction_mode,direction_sign,direction_stable,direction_elapsed,joint_zero1,joint_zero2,joint_zero_saved,joint_zero_state,joint_zero_error");
   nextTick=micros()+Shadow::PERIOD_US;reason=ready?9:4;if(!numericOk)reason=6;
 }
 void loop(){
@@ -239,6 +263,17 @@ void loop(){
   float tilt=0;bool imuGood=motionImu(tilt);unsigned oldPhase=motion.phase,oldStage=motion.recoveryStage;
   float rate=AttitudeFilter::norm3(wDps);
   motion.tick(millis(),imuGood,tilt,millis()-lastHeartbeat,rate);
+  unsigned captureBefore=jointCapture.state;
+  jointCapture.update(millis(),motion.phase==0&&motion.offConfirmed,imuGood&&tilt<.174533f&&rate<1.f,servos.states);
+  if(captureBefore==1&&jointCapture.state==2){
+    if(persistJointZero(jointCapture.result[0],jointCapture.result[1])){
+      stopShadow(1);syncJointZeroTargets();motion.reason=Motion::HOST_STOP;
+      Serial.printf("# JOINTZERO_SAVED ID1=%d ID2=%d NVS=verified NO_SERVO_WRITES\n",JointLimits::ZERO[0],JointLimits::ZERO[1]);
+      // NVS flash writes occur only off; reacquire filter timing without replacing the IMU reference.
+      filter.invalidate();lastTick=0;nextTick=micros()+Shadow::PERIOD_US;
+    }else{jointCapture.fail(7);Serial.println("# JOINTZERO_FAILED NVS_write_or_verify");}
+  }
+
   if(oldStage!=motion.recoveryStage)Serial.printf("# RECOVERY_STAGE=%u\n",motion.recoveryStage);
   if(oldPhase!=motion.phase){
     Serial.printf("# MOTION phase=%u reason=%u off=%u\n",motion.phase,motion.reason,unsigned(motion.offConfirmed));

@@ -1,10 +1,10 @@
 # ESP32-C3 SuperMini：双舵机自起身机器人
 
-**HD1910 × 2 · BMI270 · 微雪 Bus Servo Adapter (A) · V24 固件与展示窗口**
+**HD1910 × 2 · BMI270 · 微雪 Bus Servo Adapter (A) · V25 固件与展示窗口**
 
 这是已经迁移到 **ESP32-C3 SuperMini** 的独立版本。按教程完成：逐颗改 ID → 组装 → 面包板接线 → 烧录 → 平放校准 → 窗口手动启动。
 
-**[下载 C3 V24 完整包](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/raw/refs/heads/main/esp32c3/downloads/HD1910_C3_V24.zip)** · [返回 S3 版](../README.md)
+**[下载 C3 V25 完整包](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/raw/refs/heads/main/esp32c3/downloads/HD1910_C3_V25.zip)** · [返回 S3 版](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3)
 
 完整包内含固件源码、四个已编译烧录文件、展示 UI、安装/烧录/启动工具、接线图、机械 STL 和验证摘要；无需 GPU、重新训练或联网推理。先右键 ZIP → **全部解压**，建议解压到 `C:\HD1910_C3`。
 
@@ -16,7 +16,8 @@
 | 1 | [用 FD 逐颗改 ID](docs/01-servo-id.md) | 1Mbps 能读到上 ID1、下 ID2 |
 | 2 | [装配结构](docs/02-assembly.md) | 底座平放、两轴居中、长杆竖直 |
 | 3 | [C3 针脚与面包板详细接线](docs/03-wiring.md) | 7 根信号/IMU 线和独立供电逐根核对 |
-| 4 | [烧录 C3 程序与 BOOT 救援](docs/04-flashing.md) | 烧录校验通过，V24 启动自检完成 |
+| 4 | [烧录 C3 程序与 BOOT 救援](docs/04-flashing.md) | 烧录校验通过，V25 启动自检完成 |
+| 首次标定 | [在窗口保存本设备的直立关节零位](docs/06-calibration.md) | 无需改源码，界面显示本设备保存的 ID1/ID2 基准 |
 | 5 | [窗口连接与第一次起身](docs/05-first-run.md) | 放倒、扶护、启动、站稳回零、卸力 |
 | 6 | [新舵机零位与 IMU 方向](docs/06-calibration.md) | 实物直立与软件关节零位一致 |
 | 7 | [连接、读数和动作故障](docs/07-troubleshooting.md) | 根据具体停止原因检查 |
@@ -30,7 +31,7 @@
 | 文件 | 作用 |
 | --- | --- |
 | `00_setup.cmd` | 首次安装 Python 依赖，创建本目录的 `.venv` |
-| `01_flash.cmd` | 检查文件后把 V24 烧录到 C3 |
+| `01_flash.cmd` | 检查文件后把 V25 烧录到 C3 |
 | `02_open_demo.cmd` | 打开展示窗口，选择本机 COM 再连接 |
 | `03_read_joint_zero.cmd` | 只读直立时舵机位置，不自动修改零位 |
 
@@ -53,15 +54,17 @@
 ## 这版的行为与范围
 
 - 训练模型在 C3 上运行，手动勾选扶护并点击启动。不会因放倒而自行运动。
-- 上 ID1 ±135°、下 ID2 ±95°；原机软件零位 337 / 2872，新机器先按第 6 章核对。
+- 上 ID1 ±135°、下 ID2 ±95°，都相对于**这台 C3 保存的关节零位**。首次使用必须在真实直立时点击“保存当前直立关节零位”，无需改代码或重新训练。
 - 起身目标推进上限 52 计数/20ms，前倒加速阶段下轴 68；速度寄存器 100、限流 90、限矩 600，限流/限矩不超过读到的出厂值。这些寄存器值不是安培、牛米或实际速度翻倍的承诺。
 - 站稳后回到关节零位，回零目标推进为 9 计数/20ms；一次动作最多 14 秒。
 - 新上电先平放静止，完整自检和水平校准约 35～40 秒；窗口重连不等于重新上电归零。
 - Esc / 红色按钮停止并卸力；记录自动保存在 `desktop/recordings/`。
-- “重连 IMU”只在卸力确认后可用，保留本次水平参考；“校准零点”仅在底座平放静止时使用。
+- “重连 IMU”保留本次水平参考；“校准 IMU”仅处理底座姿态参考；“保存当前直立关节零位”处理两个关节的直立编码器基准，保存到本 C3 的 NVS，重启后校验读回。
 
-V24 保留 C3 运算加速，修复前后倾倒时约 4°～6.9°侧偏的方向选择空档，并统一控制器/串口写入上限。
+V25 在 V24 基础上增加每设备关节零位采集和保存。首次未保存时显示原始编码器，并禁止起身；不会把启动时的任意姿态自动当零位。换舵机、拆装舵盘或换 C3 后，按第 6 章重新保存。保存过程只采样，不写舵机角度或启动动作。
 
-[验证摘要](validation/summary.json)：4200 组原轨迹数值检查通过；实机 30 秒两网络分支计算、IMU、双舵机反馈与停止检查通过，最大计算约 11.45ms；已在两颗真实舵机上写入并读回 90 / 600 / 100，全程卸力。软件界面/数据层 32 项检查通过。**发布时尚未确认 V24 四方向实际起身效果**，机械、供电和安装差异仍需逐轮扶护验证。
+[V25 验证摘要](validation/summary.json)：编译通过；4200 组数值轨迹、40,000 次网络比较、不同零位下的控制器/限位、保存与模拟重启、异常采样拒绝、窗口/记录回放检查通过。**发布时当前电脑未连接 USB C3，V25 的真实 NVS 保存、断电重启与物理起身尚待设备验证。** [V24 实机基线](validation/summary-v24.json)中的约 11.45ms 计算和 90/600/100 读回结果仅代表 V24，不冒充 V25 实测。
+
+需要保留旧流程时，可下载 [V24 完整包](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/raw/refs/heads/main/esp32c3/downloads/HD1910_C3_V24.zip)；它使用固定的 337/2872，不能替代 V25 的设备零位功能。
 
 源码见 `firmware/policy_shadow/`，窗口见 `desktop/`，校验值与编译身份见 [manifest.json](manifest.json)，第三方来源见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本教程的针脚示意为项目绘制，FD/微雪图片来源标在相应章节中。

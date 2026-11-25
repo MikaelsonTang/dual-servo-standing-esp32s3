@@ -1,23 +1,22 @@
 {
-  "firmware": "HD1910_C3_TEST_V24",
-  "runtime_sha256": "941a19dc513c485d91ecf97d6e4a2e75412a43dab0471ea062c2a27daa52e95a",
+  "firmware": "HD1910_C3_TEST_V25",
+  "runtime_sha256": "f731c6ae5f5a458c0a1cff4f99b54111c2db78e5fa4b5572f398dfa834b48509",
   "source_files": {
-    "policy_networks.h": "f0b604be637b1dcffd7415884b135944264cfd5175dda23befafb1b3df274a33",
     "dense_q15.h": "eb2beb524302cfdfc200f6a62d701abe8a59cd0d8b7be419f87efbd9adb48bbb",
     "directional_policy.h": "26cf8d8223ebbd12c9040b4122553b60ae99fa2204b3bde92f1904d953e8f477",
     "directional_runtime.h": "d649e457fb1b24b8b123a729e6888c0cdbab0fbc00bd148a6bc2f8befe6fd025",
-    "limited_motion.h": "61bb6e537be15581a8f453b7f483ed6517a2ad9855d45f0ffc6f96be18ab6cd1",
-    "joint_limits.h": "65e52404d78f659720a8c2872a90a49b5544be2b699ff64e8684b7c8f4712f1c",
-    "shadow_core.h": "8b937543af13863ed07db5b2a73f6963c7257d528c4e202ae79f9ead2e9e0c03",
-    "startup_zero.h": "063fc5ee3bb65690754088efcad6f8f1a6246bc293e43143441c16a5e599ee61",
+    "joint_limits.h": "bab7510eb295ed23943baed1fcba377d6215b07c1fd53f55c300607afe2e2d6e",
+    "joint_zero_capture.h": "5c858314d4ebd30e058c1737e2bc3cbbf6ff9d228743f4bdd81c89164730b402",
+    "joint_zero_storage.h": "90cf241f47ff576f9f8a18dd65cc2c3c7dcd48a330aa46049b315664949fe5b0",
+    "limited_motion.h": "2df90ad2b93dab7229f486094b565945d228b24741f0ea00bf5ad4a058d168b6",
+    "policy_networks.h": "f0b604be637b1dcffd7415884b135944264cfd5175dda23befafb1b3df274a33",
     "servo_reader.h": "fd9bda09392f629e3a9a623e263a50a94397783b90e5c9c94b7c88202bb2115c",
-    "servo_write_limits.h": "93ff77b6dc0bf92818578f9b7a2cd28e36ba73f37de48cd9c5be6bcee845131c"
+    "servo_write_limits.h": "93ff77b6dc0bf92818578f9b7a2cd28e36ba73f37de48cd9c5be6bcee845131c",
+    "shadow_core.h": "8b937543af13863ed07db5b2a73f6963c7257d528c4e202ae79f9ead2e9e0c03",
+    "startup_zero.h": "063fc5ee3bb65690754088efcad6f8f1a6246bc293e43143441c16a5e599ee61"
   },
   "board": "ESP32-C3 SuperMini",
-  "joint_zeros": {
-    "1": 337,
-    "2": 2872
-  },
+  "joint_zeros": null,
   "range_degrees": {
     "1": 135,
     "2": 95
@@ -28,11 +27,11 @@
   "random_network_max_error": 0.000132307,
   "manual_start_only": true,
   "compiled": true,
-  "flashed": true,
-  "flash_hash_verified": true,
-  "runtime_verified": true,
+  "flashed": false,
+  "flash_hash_verified": false,
+  "runtime_verified": false,
   "hardware_motion_tested": false,
-  "pending_validation": "Physical recovery on V24, user-operated",
+  "pending_validation": "V25 has no connected USB C3 in author workspace; NVS and new calibration require device verification",
   "power_profile": {
     "current_limit_register": 90,
     "torque_limit_register": 600,
@@ -41,14 +40,12 @@
     "front_step_counts_per_20ms": 68,
     "factory_caps_enforced": true
   },
-  "observer_max_infer_us": 11445.0,
-  "imu_reconnect_validation": "imu_reconnect_validation.json",
-  "servo_configuration_validation": "servo_configuration_validation.json",
+  "observer_max_infer_us": null,
   "flash_files": {
-    "application.bin": "8c34c18da6ef45e3daf3821456234fba65c952f4a69146869a48dbc47128d834",
+    "application.bin": "d3e2da23ad1cdad1c4f3d6f1d364297572584a216bd3073f5a324618733706a1",
     "bootloader.bin": "41c3e57e9942de98fddff1a8a0a2e72bc72b25c36e354e7b8130d116662d6451",
-    "partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1",
-    "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0"
+    "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
+    "partitions.bin": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1"
   },
   "source_text_sha256": {
     "firmware/policy_shadow/attitude_filter.h": "f80a9baa714ca3aae6c562b3093391431e7393f10ef87ad048b7daeb105a748b",
@@ -60,23 +57,26 @@
     "firmware/policy_shadow/directional_vectors.h": "0c2972eeee03890c65bc0150ee9f7c4893afeeb6a96d3e99cc46b9685638b161",
     "firmware/policy_shadow/imu_scale.h": "f443ee1a0fab1c8196bc707ffd923c761ced5a54d8170e8d4c855efa8c3a33ec",
     "firmware/policy_shadow/imu_setup.h": "09154fda4e672dac1911664486ddfcf0aff6c2b226fdc21d817ad8a3ef4db4a4",
-    "firmware/policy_shadow/joint_limits.h": "a4deacb05c1dbdda12f89c24f0ea0b6d2e90fc4ea3c6afaab6da50cb7ee5a775",
-    "firmware/policy_shadow/limited_motion.h": "a716aed38a2c913d17ef564993232018248525751f54793e67f3789021026eaa",
+    "firmware/policy_shadow/joint_limits.h": "4dfbaf1dae9e982dc46fd8f930a6170694a2ff4ed73d3c04ebd724418f9a02b7",
+    "firmware/policy_shadow/joint_zero_capture.h": "5c858314d4ebd30e058c1737e2bc3cbbf6ff9d228743f4bdd81c89164730b402",
+    "firmware/policy_shadow/joint_zero_storage.h": "90cf241f47ff576f9f8a18dd65cc2c3c7dcd48a330aa46049b315664949fe5b0",
+    "firmware/policy_shadow/limited_motion.h": "89fbcf3c959c55ad616d8dab3f49cd85afa0578ac587c15862d803f56d2d9618",
     "firmware/policy_shadow/policy_control.h": "c0b5704ae4ba482e851b13c8c4ec72188f0c96ebe37279eb4c7929e9ecb4bfa9",
     "firmware/policy_shadow/policy_network.h": "c6e69059c87467dd9b55321f939c7b64da2d9e77ff51ecb8667217b7045d094f",
     "firmware/policy_shadow/policy_networks.h": "ed67dce5c18f5847357c529585b0c1bf8106dec2a1c0380fe82e7ec7484fd984",
-    "firmware/policy_shadow/policy_shadow.ino": "3b73d6d0c780a86a258ec495fe212550b1ff349a0424e4ab5b0a7961e5372fe1",
+    "firmware/policy_shadow/policy_shadow.ino": "47f7fde8d5c488a654f3d6cd63b3ddf72c9f337e1140010477dc77c237f4872e",
     "firmware/policy_shadow/servo_protocol.h": "1b8f950cdb7849df770a3f6059e8f485251a92f91772ec48417bf2749786997e",
     "firmware/policy_shadow/servo_reader.h": "b70318b88437b575095f79da7b6ca0f6c90b050e8b58f6e745ef2d4864f6dcd7",
     "firmware/policy_shadow/servo_write_limits.h": "93ff77b6dc0bf92818578f9b7a2cd28e36ba73f37de48cd9c5be6bcee845131c",
     "firmware/policy_shadow/shadow_core.h": "011f20e5099197bd542e8c6d1e369293b0bb9e39a84c14cdc130e9011d2976b8",
+    "firmware/policy_shadow/startup_zero.h": "063fc5ee3bb65690754088efcad6f8f1a6246bc293e43143441c16a5e599ee61",
+    "firmware/policy_shadow/test_vectors.h": "177f7c029ad906493cec2f686b24338c40c024b6e3891b40c8553f5beb1fc81e",
     "firmware/policy_shadow/src/bosch/bmi2.c": "1ca2409e2692d6b55a1d50caeec2a6abb4f4c161550820e5334654bf5217504f",
     "firmware/policy_shadow/src/bosch/bmi2.h": "fd4dac73cad69b50e3040d1f75efd456fc8631d4f62396ac12c7705c0c9c1739",
     "firmware/policy_shadow/src/bosch/bmi270.c": "c825518f825bafdc43a17c9b8d5eaa244a140a52a59dfcc356fe057589587d27",
     "firmware/policy_shadow/src/bosch/bmi270.h": "7eb4739f45595cf234e59bfdafdcc334d0a2ceff43965f3ab27ca21a0c320f0e",
     "firmware/policy_shadow/src/bosch/bmi2_defs.h": "ebb0c7e75330e6d35efeaf7c3ff6324bb623291a88f46527db00bb2ff04947c4",
-    "firmware/policy_shadow/startup_zero.h": "063fc5ee3bb65690754088efcad6f8f1a6246bc293e43143441c16a5e599ee61",
-    "firmware/policy_shadow/test_vectors.h": "177f7c029ad906493cec2f686b24338c40c024b6e3891b40c8553f5beb1fc81e",
-    "desktop/data.py": "004b3fa270c171137cccb5fd2b4f9d1f1dfda466523439cfc32d859b7da96c01"
-  }
+    "desktop/data.py": "fad6b306bfb6db96bb696fb331e6f68189c44f5f1614525198fef51eda292b35"
+  },
+  "joint_zero_mode": "explicit stable upright capture, per-device C3 NVS, readback verified"
 }

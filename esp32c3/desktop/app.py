@@ -10,7 +10,7 @@ import time
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import serial.tools.list_ports
-from data import DIRECTION_MODES, DIRECTIONAL_FW, MODES, REASONS, MOTION_REASONS, RECOVERY_STAGES, motion_reason_text, JOINT_ZEROS, FW, target_limits, startup_tolerance, start_positions_ok, Recorder, replay_rows
+from data import row_joint_zeros, DYNAMIC_ZERO_FW, DIRECTION_MODES, DIRECTIONAL_FW, MODES, REASONS, MOTION_REASONS, RECOVERY_STAGES, motion_reason_text, JOINT_ZEROS, FW, target_limits, startup_tolerance, start_positions_ok, Recorder, replay_rows
 from transport import Link
 
 ROOT=Path(__file__).resolve().parent
@@ -154,6 +154,7 @@ class Dashboard:
         self.source.configure(text='记录回放 · 非实时',bg='#f5e5d8',fg=ORANGE);self.connection.configure(text='离线回放',fg=ORANGE)
         self.start_btn.configure(text='播放记录');self.pause_btn.configure(text='暂停回放');self.log_message('已加载 '+str(path));self.start()
     def receive(self,row):
+        self.display_zeros=row_joint_zeros(row)
         if self.row and row['ms']<self.row['ms']:
             self.history.clear();self.last_infer=0
         self.row=row;self.last_received=time.monotonic();self.history.append(row);self.sample_count+=1
@@ -206,6 +207,8 @@ class Dashboard:
         active_fw=self.link.identity.firmware_name if connected else FW if live else getattr(self.replay,'firmware',None)
         tolerance=startup_tolerance(active_fw)
         ready_motion=bool(live and connected and valid and self.row['motion_phase']==0 and self.row['motion_off']==1 and self.supported.get())
+        if ready_motion and active_fw in DYNAMIC_ZERO_FW:
+            ready_motion=self.row.get('joint_zero_saved')==1 and self.row.get('joint_zero_state')!=1
         if ready_motion:
             ready_motion=start_positions_ok(self.row,active_fw) and all(self.row[f's{i}_state']==1 and self.row[f's{i}_age_ms']<=80 and self.row[f's{i}_torque']==0 for i in JOINT_ZEROS)
         for b in self.motion_buttons:b.configure(state='normal' if ready_motion else 'disabled')
@@ -216,7 +219,7 @@ class Dashboard:
             actual_fresh=all(r[f's{i}_state']==1 and r[f's{i}_age_ms']<=80 for i in (1,2))
             if not actual_fresh:label='舵机反馈不新鲜，无法确认当前卸力状态'
             if phase==0 and actual_fresh and r['motion_reason'] in (0,1,12,19) and not start_positions_ok(r,active_fw):
-                why=f'请摆正并保持：ID1 {JOINT_ZEROS[1]-tolerance}～{JOINT_ZEROS[1]+tolerance}；ID2 {JOINT_ZEROS[2]-tolerance}～{JOINT_ZEROS[2]+tolerance}'
+                why=f'请摆正并保持：ID1 {self.display_zeros[1]-tolerance}～{self.display_zeros[1]+tolerance}；ID2 {self.display_zeros[2]-tolerance}～{self.display_zeros[2]+tolerance}'
             elif phase==0 and r['motion_reason'] in (0,1,12,19) and live and connected and valid and actual_fresh and not self.supported.get():
                 why='位置满足启动范围；扶稳后勾选“已扶稳机器人”'
             target_text=f'当前发送目标 ID1 {int(r["motion_cmd1"])} / ID2 {int(r["motion_cmd2"])}' if phase==2 else f'软件零位 ID1 {self.display_zeros[1]} / ID2 {self.display_zeros[2]}'

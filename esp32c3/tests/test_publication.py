@@ -25,7 +25,7 @@ class PublicationChecks(unittest.TestCase):
         for offset in ('0x0','0x8000','0xe000','0x10000'):self.assertIn(offset,args)
         self.assertNotIn('esp32s3',args)
     def test_runtime_sources_unchanged_from_validated_revision(self):
-        source=ROOT.parents[1]/'c3_recovery'
+        source=ROOT.parents[1]/'c3_recovery_v25'
         if not source.exists():self.skipTest('Author workspace comparison only')
         for directory in ('firmware','desktop'):
             for p in (ROOT/directory).rglob('*'):

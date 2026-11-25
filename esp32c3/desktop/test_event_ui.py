@@ -16,6 +16,7 @@ class EventTests(unittest.TestCase):
         self.ui.link=SimpleNamespace(verified=True,identity=SimpleNamespace(firmware_name=FW),
             send=self.sent.append,stop_event=SimpleNamespace(set=lambda:None),join=lambda **k:None)
         r={k:0 for k in FIELDS};r.update(ms=1000,quality=1,zero_ready=1,zero_seq=1,motion_off=1,direction_sign=1)
+        r.update(joint_zero1=337,joint_zero2=2872,joint_zero_saved=1,joint_zero_state=0,joint_zero_error=0)
         for i,z in JOINT_ZEROS.items():r.update({f's{i}_position':z,f's{i}_state':1,f's{i}_voltage':5})
         self.ui.receive(r)
     def tearDown(self):
