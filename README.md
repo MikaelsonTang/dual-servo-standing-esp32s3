@@ -1,6 +1,6 @@
 # 从零搭建一台双舵机自起身机器人
 
-> **新增：[ESP32-C3 SuperMini 专用教程与 V25 完整包](esp32c3/README.md)**。C3 用户从该入口开始，V25 支持在窗口保存每台设备的直立关节零位，并包含针脚图、BOOT 救援、烧录程序与展示窗口。下文为原 ESP32-S3 版本。
+> **使用 ESP32-C3 SuperMini？** 请从 [C3 V26 专用教程与完整包](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/tree/main/esp32c3)开始。以下步骤仅用于 ESP32-S3 V21；两个板型的固件不能混刷。
 
 **ESP32-S3 · HD1910 × 2 · BMI270 · Windows 活动教程**
 
@@ -34,8 +34,6 @@
 
 **独立购买零件、重新组装的人：在第一次带电运动之前完成第 6 章。** 活动中拿到已经调好的同款套件，可以按 0→5 操作；仍要检查方向和零位。
 
-固定活动版本：[workshop-v20-ui-v1](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/tree/workshop-v20-ui-v1)（用于保留这一版程序与界面）。
-
 ## 先看这三处，少走弯路
 
 | 要找什么 | 看哪张图 | 记住什么 |
@@ -50,13 +48,12 @@
 
 在本仓库页面上方点击 **Code → Download ZIP**，下载后右键 **全部解压**。不要在 ZIP 压缩包里直接双击程序。建议放到 `C:\HD1910` 这样的简单目录。
 
-[直接下载当前仓库 ZIP](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/archive/refs/heads/main.zip)
+[直接下载 S3 V21 完整包](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/raw/refs/heads/main/downloads/HD1910_S3_V21.zip)。另一台电脑请解压到**新文件夹**，关闭并删除旧窗口文件夹，只从新文件夹运行以下脚本。烧录只更新板上固件，不会更新电脑上的窗口。
 
 | 双击文件 | 作用 |
 | --- | --- |
 | `00_setup.cmd` | 首次安装电脑端所需的 Python 依赖，自动创建 `.venv` |
 | `01_flash.cmd` | 将已编译 V21 固件烧进 ESP32-S3；会先校验文件，并要求输入 `FLASH` |
-| `01_flash_v20_legacy.cmd` | 仅供需要回退旧机时使用原 V20 固件 |
 | `02_open_demo.cmd` | 打开保留的活动展示界面，默认未连接 |
 | `03_read_joint_zero.cmd` | 组织者单独只读核对；电脑端记录不改变 ESP32 零位 |
 
@@ -72,7 +69,7 @@
 - 点击红色停止按钮或按 **Esc** 会请求卸力，需继续扶住结构。
 - 自动保存每次实验的 CSV、JSONL 与会话信息到 `desktop/recordings/`。
 
-V20 已在原机器通过数值自检、IMU 与双舵机反馈/卸力检查。V21 是新增的每设备零位版本，已通过 S3 编译和桌面软件测试；**尚未在当前这台实机完成读取、烧录和起身验证**。不同机器、供电和组装状态的起身成功率需要现场验证。
+V21 已通过 S3 编译和桌面软件测试；**尚未在当前这台实机完成读取、烧录和起身验证**。不同机器、供电和组装状态的起身成功率需要现场验证。
 
 ## 新手先记住这四件事
 
@@ -88,13 +85,10 @@ docs/                      分步骤教程、接线图、装配图
 desktop/                   唯一活动窗口 + 底层控制、通信和记录代码
 firmware/v21/policy_shadow/ 当前 V21 源码与 Bosch 驱动
 firmware/prebuilt/v21/      当前 V21 已编译固件、地址表、SHA-256 校验清单
-firmware/policy_shadow/     原 V20 源码，保留回退
-firmware/prebuilt/v20/      原 V20 固件，保留回退
 mechanical/stl/            底座、中间支架、顶部长杆打印件（mm）
 tools/                     烧录和直立位置读取工具
-firmware/imu_reader/       早期 IMU 试验固件，非活动主程序
 ```
 
 展示 UI 只使用 `desktop/event_app.py`，双击入口只有 `02_open_demo.cmd`。`desktop/controller.py` 是内部控制与记录代码，不提供旧界面入口。现场修改前请复制整份目录作为备份。
 
-硬件资料与软件来源列于[第 0 章](docs/00-preparation.md)和[第三方说明](THIRD_PARTY_NOTICES.md)。早期版本见[历史归档](docs/archive/README_20261115.md)。
+硬件资料与软件来源列于[第 0 章](docs/00-preparation.md)和[第三方说明](THIRD_PARTY_NOTICES.md)。

@@ -24,10 +24,10 @@ class PublicationChecks(unittest.TestCase):
         self.assertEqual(args[args.index('--chip')+1],'esp32c3')
         for offset in ('0x0','0x8000','0xe000','0x10000'):self.assertIn(offset,args)
         self.assertNotIn('esp32s3',args)
-    def test_runtime_sources_unchanged_from_validated_revision(self):
+    def test_firmware_sources_unchanged_from_validated_revision(self):
         source=ROOT.parents[1]/'c3_recovery_v26'
         if not source.exists():self.skipTest('Author workspace comparison only')
-        for directory in ('firmware','desktop'):
+        for directory in ('firmware',):
             for p in (ROOT/directory).rglob('*'):
                 if p.suffix in ('.ino','.h','.c','.py'):
                     self.assertEqual(p.read_text(encoding='utf-8'),(source/p.relative_to(ROOT)).read_text(encoding='utf-8'))

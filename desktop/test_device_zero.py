@@ -4,11 +4,19 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from data import FIELDS, FW, Recorder, parse, replay_rows, start_positions_ok
+from data import FIELDS, FW, Identity, Recorder, parse, replay_rows, start_positions_ok
+from transport import require_current_firmware
 from test_event_ui import EventTests
 
 
 class DeviceZeroTests(EventTests):
+    def test_live_window_rejects_old_firmware(self):
+        self.assertIn('ESP32-S3 · V21',self.root.title())
+        current=Identity();line=f'# FW={FW} BAUD=230400 SERVO_OUTPUT=LIMITED';current.feed(line)
+        require_current_firmware(line,current)
+        old=Identity();line='# FW=HD1910_RECOVERY_V20 BAUD=230400 SERVO_OUTPUT=LIMITED';old.feed(line)
+        with self.assertRaisesRegex(RuntimeError,'固件版本不匹配'):require_current_firmware(line,old)
+
     def custom(self, saved=1):
         row = dict(self.ui.row, joint_zero1=4045, joint_zero2=321,
                    joint_zero_saved=saved, s1_position=4045, s2_position=321,

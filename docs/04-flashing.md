@@ -86,7 +86,7 @@ Upload completed             ← 本工具完成上传
    ```
 
 3. 打开“工具 → 开发板 → 开发板管理器”，搜索 **esp32**，选择 **Espressif Systems** 提供的 **2.0.17** 并安装。本项目按这个版本验证；不要先改成最新核心后再排查其他问题。
-4. 在“文件 → 打开”里选 `firmware/v21/policy_shadow/policy_shadow.ino`。**保留整个文件夹**及 `src/bosch/`，不要只复制一个 `.ino`，也不要打开早期 `imu_reader.ino`。
+4. 在“文件 → 打开”里选 `firmware/v21/policy_shadow/policy_shadow.ino`。**保留整个文件夹**及 `src/bosch/`，不要只复制一个 `.ino`。
 5. 在工具菜单选择：
 
    | 项目 | 选择 |

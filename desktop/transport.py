@@ -2,9 +2,13 @@ import queue
 import threading
 import time
 import serial
-from data import Identity, parse
+from data import Identity, parse, FW
 
 ALLOWED={'START','PAUSE','ZERO','CAL','STATUS','STOP','HOLD','TEST1','TEST2','POLICY','GETUP','JOINTZERO'}
+
+def require_current_firmware(line,identity):
+    if '# FW=' in line and identity.firmware_name != FW:
+        raise RuntimeError(f'固件版本不匹配：本窗口需要 {FW}，设备报告 {line}。请使用同一最新版文件夹里的 01_flash.cmd 和 02_open_demo.cmd')
 
 class Link(threading.Thread):
     def __init__(self,port,ui_required=False):
@@ -51,6 +55,7 @@ class Link(threading.Thread):
                         self.verified=False;started=time.monotonic()
                         self.emit('restart','设备重新报告固件身份，重新核对版本')
                     self.identity.feed(line)
+                    require_current_firmware(line,self.identity)
                     if self.identity.verified and not self.verified:
                         self.verified=True;self.emit('verified',self.port_name)
                     try:row=parse(line,firmware=self.identity.firmware_name) if self.verified else None

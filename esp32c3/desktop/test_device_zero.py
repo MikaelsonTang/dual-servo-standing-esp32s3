@@ -2,9 +2,16 @@ import json,tempfile,time,unittest
 from pathlib import Path
 from unittest.mock import patch
 from test_event_ui import EventTests
-from data import FW,FIELDS,parse,start_positions_ok,Recorder,replay_rows
+from data import FW,FIELDS,Identity,parse,start_positions_ok,Recorder,replay_rows
+from transport import require_current_firmware
 
 class DeviceZeroTests(EventTests):
+    def test_live_window_rejects_old_firmware(self):
+        current=Identity();line=f'# FW={FW} BAUD=230400 SERVO_OUTPUT=LIMITED';current.feed(line)
+        require_current_firmware(line,current)
+        old=Identity();line='# FW=HD1910_C3_TEST_V25 BAUD=230400 SERVO_OUTPUT=LIMITED';old.feed(line)
+        with self.assertRaisesRegex(RuntimeError,'固件版本不匹配'):require_current_firmware(line,old)
+
     def test_v26_has_no_recovery_total_deadline_in_ui_or_metadata(self):
         from data import home_settings,recovery_pacing
         self.ui.draw();self.assertIn('无总时限',self.ui.limit_label.cget('text'))

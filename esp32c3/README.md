@@ -63,12 +63,8 @@
 - Esc / 红色按钮停止并卸力；记录自动保存在 `desktop/recordings/`。
 - “重连 IMU”保留本次水平参考；“校准 IMU”仅处理底座姿态参考；“保存当前直立关节零位”处理两个关节的直立编码器基准，保存到本 C3 的 NVS，重启后校验读回。
 
-V26 保留 V25 的每设备关节零位采集和保存，正常升级沿用同一份有效 NVS 记录。首次未保存时显示原始编码器，并禁止起身；不会把启动时的任意姿态自动当零位。换舵机、拆装舵盘或换 C3 后，按第 6 章重新保存。保存过程只采样，不写舵机角度或启动动作。
+V26 支持每设备关节零位采集和保存。首次未保存时显示原始编码器，并禁止起身；不会把启动时的任意姿态自动当零位。换舵机、拆装舵盘或换 C3 后，按第 6 章重新保存。保存过程只采样，不写舵机角度或启动动作。
 
-[V26 验证摘要](validation/summary.json)：编译通过；4200 组数值轨迹、40,000 次网络比较、不同零位下的控制器/限位、保存与模拟重启、异常采样拒绝、窗口/记录回放检查通过。**发布时当前电脑未连接 USB C3，V26 的真实 NVS 保存、断电重启与物理起身尚待设备验证。** [V24 实机基线](validation/summary-v24.json)中的约 11.45ms 计算和 90/600/100 读回结果仅代表 V24，不冒充 V26 实测。
-
-需要保留旧流程时，可下载 [V24 完整包](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/raw/refs/heads/main/esp32c3/downloads/HD1910_C3_V24.zip)；它使用固定的 337/2872，不能替代 V26 的设备零位功能。
-
-需要恢复较低输出和 14 秒起身总时限时，可下载 [V25 完整包](https://github.com/MikaelsonTang/dual-servo-standing-esp32s3/raw/refs/heads/main/esp32c3/downloads/HD1910_C3_V25.zip)。
+[V26 验证摘要](validation/summary.json)：编译通过；4200 组数值轨迹、40,000 次网络比较、不同零位下的控制器/限位、保存与模拟重启、异常采样拒绝、窗口/记录回放检查通过。**发布时当前电脑未连接 USB C3，V26 的真实 NVS 保存、断电重启与物理起身尚待设备验证。**
 
 源码见 `firmware/policy_shadow/`，窗口见 `desktop/`，校验值与编译身份见 [manifest.json](manifest.json)，第三方来源见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本教程的针脚示意为项目绘制，FD/微雪图片来源标在相应章节中。

@@ -69,13 +69,13 @@ class EventDashboard(original.Dashboard):
         # Keep the proven transport, heartbeat, validation, STOP and recording paths.
         super().__init__(root)
         for child in root.winfo_children():child.pack_forget()
-        root.title('HD1910 · 自起身实验室');root.geometry('1120x870');root.minsize(1000,810);root.configure(bg=BG)
+        root.title('HD1910 · ESP32-S3 · V21');root.geometry('1120x870');root.minsize(1000,810);root.configure(bg=BG)
         root.option_add('*Font',(FONT,10))
         header=tk.Frame(root,bg=BG);header.pack(fill='x',padx=32,pady=(24,18))
         brand=tk.Frame(header,bg=BG);brand.pack(side='left')
         tk.Label(brand,text='HD1910',font=(NUM,28,'bold'),bg=BG,fg=INK).pack(side='left')
         tk.Label(brand,text='自起身实验室',font=(FONT,16),bg=BG,fg=INK).pack(side='left',padx=18,pady=(6,0))
-        self.source=tk.Label(header,text='双舵机 · 智能控制',font=(FONT,10),bg=BG,fg=ACCENT);self.source.pack(side='right',pady=10)
+        self.source=tk.Label(header,text='ESP32-S3 · V21 · 本设备零位',font=(FONT,10),bg=BG,fg=ACCENT);self.source.pack(side='right',pady=10)
         bar=Card(root,height=82,padding=18);bar.pack(fill='x',padx=32)
         b=bar.body
         tk.Label(b,text='设备连接',fg=INK,bg=WHITE).pack(side='left',padx=(0,14))
